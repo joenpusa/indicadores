@@ -23,10 +23,12 @@ app.get('/', (req, res) => {
 
 // Import Routes
 const authRoutes = require('./routes/auth.routes');
+const secretariasRoutes = require('./routes/secretarias');
 // const userRoutes = require('./routes/user.routes');
 
 // Use Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/secretarias', secretariasRoutes);
 // app.use('/api/users', userRoutes);
 
 // Error Handling Middleware
