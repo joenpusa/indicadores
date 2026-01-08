@@ -29,7 +29,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             style={{ width: sidebarWidth, height: '100vh', transition: 'width 0.3s' }}
         >
             <div className={`d-flex align-items-center mb-3 mb-md-0 text-white text-decoration-none ${isCollapsed ? 'justify-content-center' : ''}`}>
-                <a href="/" className="d-flex align-items-center text-white text-decoration-none">
+                <a href="/dashboard" className="d-flex align-items-center text-white text-decoration-none">
                     <FaMapMarkedAlt className={`fs-4 ${isCollapsed ? '' : 'me-2'}`} />
                     {!isCollapsed && <span className="fs-4">Indicadores</span>}
                 </a>
@@ -38,7 +38,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             <Nav className="flex-column mb-auto">
                 <Nav.Item>
                     <NavLink
-                        to="/"
+                        to="/dashboard"
                         className={`nav-link text-white sidebar-link d-flex align-items-center ${isCollapsed ? 'justify-content-center p-2' : ''}`}
                         onClick={handleExpand}
                         end
@@ -48,7 +48,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                 </Nav.Item>
                 <Nav.Item>
                     <NavLink
-                        to="/users"
+                        to="/dashboard/users"
                         className={`nav-link text-white sidebar-link d-flex align-items-center ${isCollapsed ? 'justify-content-center p-2' : ''}`}
                         onClick={handleExpand}
                     >
@@ -68,10 +68,10 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                     </div>
                     {isConfigOpen && !isCollapsed && (
                         <div className="ms-4 mt-1">
-                            <NavLink to="/settings/municipios" className="nav-link text-white sidebar-link py-1 d-flex align-items-center">
+                            <NavLink to="/dashboard/settings/municipios" className="nav-link text-white sidebar-link py-1 d-flex align-items-center">
                                 <FaCity className="me-2" /> Municipios
                             </NavLink>
-                            <NavLink to="/settings/secretarias" className="nav-link text-white sidebar-link py-1 d-flex align-items-center">
+                            <NavLink to="/dashboard/settings/secretarias" className="nav-link text-white sidebar-link py-1 d-flex align-items-center">
                                 <FaBuilding className="me-2" /> Secretarías
                             </NavLink>
                         </div>

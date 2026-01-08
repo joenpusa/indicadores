@@ -16,7 +16,7 @@ const LoginPage = () => {
         try {
             const success = await login(email, password);
             if (success) {
-                navigate('/');
+                navigate('/dashboard');
             } else {
                 setError('Login failed');
             }
@@ -52,8 +52,11 @@ const LoginPage = () => {
                                         required
                                     />
                                 </Form.Group>
-                                <div className="d-grid">
+                                <div className="d-grid gap-2">
                                     <Button variant="primary" type="submit">Log In</Button>
+                                    <Button variant="outline-secondary" onClick={() => navigate('/')}>
+                                        Volver al Inicio
+                                    </Button>
                                 </div>
                             </Form>
                         </Card.Body>

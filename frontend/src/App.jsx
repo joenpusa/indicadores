@@ -5,15 +5,17 @@ import PrivateRoute from './routes/PrivateRoute';
 import LoginPage from './modules/auth/LoginPage';
 import DashboardPage from './modules/dashboard/DashboardPage';
 import MainLayout from './components/layout/MainLayout';
+import LandingPage from './pages/LandingPage';
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
 
-          <Route path="/" element={<PrivateRoute />}>
+          <Route path="/dashboard" element={<PrivateRoute />}>
             <Route element={<MainLayout />}>
               <Route index element={<DashboardPage />} />
               {/* Add more private routes here */}
