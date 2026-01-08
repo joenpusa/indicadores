@@ -12,14 +12,20 @@ const SecretariasPage = () => {
     const [error, setError] = useState(null);
     const [formError, setFormError] = useState(null);
 
+    const [searchTerm, setSearchTerm] = useState('');
+
     useEffect(() => {
-        fetchSecretarias();
-    }, []);
+        const delayDebounceFn = setTimeout(() => {
+            fetchSecretarias();
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
 
     const fetchSecretarias = async () => {
         setLoading(true);
         try {
-            const data = await secretariasService.getAll();
+            const data = await secretariasService.getAll({ q: searchTerm });
             setSecretarias(data);
         } catch (err) {
             setError('Error al cargar las secretarías.');
@@ -79,52 +85,73 @@ const SecretariasPage = () => {
         }
     };
 
-    if (loading) return <div className="text-center mt-5"><Spinner animation="border" /></div>;
-
     return (
         <div className="container-fluid">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <style>
+                {`
+                    .secretaria-card {
+                        transition: all 0.3s ease;
+                        border-left: 5px solid #6c757d;
+                    }
+                    .secretaria-card.active {
+                        border-left-color: #198754;
+                    }
+                    .secretaria-card:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+                        background-color: #f8f9fa;
+                    }
+                `}
+            </style>
+            <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <h2>Gestión de Secretarías</h2>
                 <Button variant="primary" onClick={() => handleShow()}>
                     <FaPlus className="me-2" /> Nueva Secretaría
                 </Button>
             </div>
 
+            <div className="mb-4">
+                <Form.Control
+                    type="text"
+                    placeholder="Buscar secretaría..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="shadow-sm"
+                />
+            </div>
+
             {error && <Alert variant="danger">{error}</Alert>}
 
-            <div className="table-responsive shadow-sm rounded">
-                <Table hover className="align-middle mb-0 bg-white">
-                    <thead className="bg-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Estado</th>
-                            <th className="text-end">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {secretarias.map((sec) => (
-                            <tr key={sec.id_secretaria}>
-                                <td>{sec.id_secretaria}</td>
-                                <td>{sec.nombre}</td>
-                                <td>
-                                    <Badge bg={sec.es_activo ? 'success' : 'secondary'}>
-                                        {sec.es_activo ? 'Activo' : 'Inactivo'}
-                                    </Badge>
-                                </td>
-                                <td className="text-end">
-                                    <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleShow(sec)}>
-                                        <FaEdit />
-                                    </Button>
-                                    <Button variant="outline-danger" size="sm" onClick={() => handleDelete(sec.id_secretaria)}>
-                                        <FaTrash />
-                                    </Button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </Table>
-            </div>
+            {loading ? (
+                <div className="text-center mt-5"><Spinner animation="border" /></div>
+            ) : (
+                <div className="row g-3">
+                    {secretarias.map((sec) => (
+                        <div className="col-12" key={sec.id_secretaria}>
+                            <div className={`card shadow-sm border-0 secretaria-card ${sec.es_activo ? 'active' : ''}`}>
+                                <div className="card-body d-flex justify-content-between align-items-center">
+                                    <div className="d-flex flex-column">
+                                        <h5 className="card-title mb-1">{sec.nombre}</h5>
+                                        <div>
+                                            <Badge bg={sec.es_activo ? 'success' : 'secondary'} className="fw-normal">
+                                                {sec.es_activo ? 'Activo' : 'Inactivo'}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                    <div className="d-flex gap-2">
+                                        <Button variant="outline-primary" size="sm" onClick={() => handleShow(sec)} title="Editar">
+                                            <FaEdit />
+                                        </Button>
+                                        <Button variant="outline-danger" size="sm" onClick={() => handleDelete(sec.id_secretaria)} title="Eliminar">
+                                            <FaTrash />
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* Modal for Create/Edit */}
             <Modal show={showModal} onHide={handleClose}>

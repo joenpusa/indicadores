@@ -1,8 +1,27 @@
 const pool = require('../config/db');
 
 class SecretariasDAO {
-    static async getAll() {
-        const [rows] = await pool.query('SELECT * FROM secretarias');
+    static async getAll(filters = {}) {
+        let sql = 'SELECT * FROM secretarias';
+        const params = [];
+        const whereClauses = [];
+
+        if (filters.q) {
+            whereClauses.push('nombre LIKE ?');
+            params.push(`%${filters.q}%`);
+        }
+
+        if (filters.active === 'true' || filters.active === true) {
+            whereClauses.push('es_activo = 1');
+        }
+
+        if (whereClauses.length > 0) {
+            sql += ' WHERE ' + whereClauses.join(' AND ');
+        }
+
+        sql += ' ORDER BY es_activo DESC, nombre ASC';
+
+        const [rows] = await pool.query(sql, params);
         return rows;
     }
 

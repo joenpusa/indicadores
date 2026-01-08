@@ -1,8 +1,8 @@
 const SecretariasDAO = require('../daos/secretariasDao');
 
 class SecretariasModel {
-    static async getAllSecretarias() {
-        return await SecretariasDAO.getAll();
+    static async getAllSecretarias(filters) {
+        return await SecretariasDAO.getAll(filters);
     }
 
     static async createSecretaria(data) {

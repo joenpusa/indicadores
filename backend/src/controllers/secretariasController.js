@@ -3,7 +3,7 @@ const SecretariasModel = require('../models/secretariasModel');
 class SecretariasController {
     static async getAll(req, res) {
         try {
-            const secretarias = await SecretariasModel.getAllSecretarias();
+            const secretarias = await SecretariasModel.getAllSecretarias(req.query);
             res.json(secretarias);
         } catch (error) {
             res.status(500).json({ error: true, message: error.message });
