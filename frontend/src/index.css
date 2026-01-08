@@ -4,5 +4,26 @@ body {
 }
 
 .nav-link.active {
-    background-color: rgba(255,255,255,0.1);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Sidebar Styles */
+.sidebar-link {
+    transition: all 0.2s ease-in-out;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+.sidebar-link:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateX(5px);
+}
+
+.sidebar-link.active {
+    background-color: #0d6efd !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-container {
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
 }
