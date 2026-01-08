@@ -1,27 +1,24 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
     const { login } = useAuth();
+    const { success, error } = useToast();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
         try {
-            const success = await login(email, password);
-            if (success) {
-                navigate('/dashboard');
-            } else {
-                setError('Login failed');
-            }
+            await login(email, password);
+            success('Inicio de sesión exitoso', 'Bienvenido');
+            navigate('/dashboard');
         } catch (err) {
-            setError(err.response?.data?.message || 'Currently unable to login');
+            error(err.response?.data?.message || 'Error al iniciar sesión', 'Error de Autenticación');
         }
     };
 
@@ -31,8 +28,7 @@ const LoginPage = () => {
                 <Col md={12}>
                     <Card className="p-4 shadow" style={{ width: '400px' }}>
                         <Card.Body>
-                            <h3 className="text-center mb-4">Login</h3>
-                            {error && <Alert variant="danger">{error}</Alert>}
+                            <h2 className="text-center mb-4">Iniciar Sesión</h2>
                             <Form onSubmit={handleSubmit}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Email</Form.Label>

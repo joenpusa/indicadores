@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Alert, OverlayTrigger, Tooltip, Spinner, Badge } from 'react-bootstrap';
+import { Button, Modal, Form, OverlayTrigger, Tooltip, Spinner, Badge, Alert } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaQuestionCircle } from 'react-icons/fa';
 import secretariasService from '../../services/secretariasService';
+import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 const SecretariasPage = () => {
     const [secretarias, setSecretarias] = useState([]);
@@ -9,10 +11,14 @@ const SecretariasPage = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({ nombre: '', es_activo: true });
-    const [error, setError] = useState(null);
-    const [formError, setFormError] = useState(null);
+
+    // Removed local error state
+    // const [error, setError] = useState(null);
+    const [formError, setFormError] = useState(null); // Keeping formError for inline modal validation
 
     const [searchTerm, setSearchTerm] = useState('');
+    const { success, error } = useToast();
+    const { confirm } = useConfirm();
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
@@ -28,7 +34,7 @@ const SecretariasPage = () => {
             const data = await secretariasService.getAll({ q: searchTerm });
             setSecretarias(data);
         } catch (err) {
-            setError('Error al cargar las secretarías.');
+            error('Error al cargar las secretarías.');
             console.error(err);
         } finally {
             setLoading(false);
@@ -62,24 +68,34 @@ const SecretariasPage = () => {
             const dataToSend = { ...formData, es_activo: formData.es_activo ? 1 : 0 };
             if (editingId) {
                 await secretariasService.update(editingId, dataToSend);
+                success('Secretaría actualizada correctamente.');
             } else {
                 await secretariasService.create(dataToSend);
+                success('Secretaría creada correctamente.');
             }
             fetchSecretarias();
             handleClose();
         } catch (err) {
-            setFormError('Error al guardar la secretaría.');
+            error('Error al guardar la secretaría.');
             console.error(err);
         }
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('¿Estás seguro de que deseas desactivar esta secretaría?')) {
+        const isConfirmed = await confirm({
+            title: 'Desactivar Secretaría',
+            message: '¿Estás seguro de que deseas desactivar esta secretaría?',
+            confirmText: 'Desactivar',
+            variant: 'danger'
+        });
+
+        if (isConfirmed) {
             try {
                 await secretariasService.remove(id);
+                success('Secretaría desactivada correctamente.');
                 fetchSecretarias();
             } catch (err) {
-                setError('Error al eliminar la secretaría.');
+                error('Error al eliminar la secretaría.');
                 console.error(err);
             }
         }
@@ -119,8 +135,6 @@ const SecretariasPage = () => {
                     className="shadow-sm"
                 />
             </div>
-
-            {error && <Alert variant="danger">{error}</Alert>}
 
             {loading ? (
                 <div className="text-center mt-5"><Spinner animation="border" /></div>
