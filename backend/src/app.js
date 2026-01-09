@@ -29,6 +29,8 @@ const secretariasRoutes = require('./routes/secretarias');
 // Use Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/secretarias', secretariasRoutes);
+app.use('/api/municipios', require('./routes/municipios.routes'));
+app.use('/api/zonas', require('./routes/zonas.routes'));
 // app.use('/api/users', userRoutes);
 
 // Error Handling Middleware
