@@ -31,7 +31,7 @@ const MainLayout = () => {
             <Sidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />
             <div className="d-flex flex-column flex-grow-1" style={{ height: '100vh', overflow: 'hidden' }}>
                 <Navbar toggleSidebar={toggleSidebar} isCollapsed={isSidebarCollapsed} />
-                <div className="flex-grow-1 p-4" style={{ overflowY: 'auto' }}>
+                <div id="main-content" className="flex-grow-1 p-4" style={{ overflowY: 'auto' }}>
                     <Outlet />
                 </div>
             </div>

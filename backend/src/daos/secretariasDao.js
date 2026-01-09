@@ -3,6 +3,7 @@ const pool = require('../config/db');
 class SecretariasDAO {
     static async getAll(filters = {}) {
         let sql = 'SELECT * FROM secretarias';
+        let countSql = 'SELECT COUNT(*) as total FROM secretarias';
         const params = [];
         const whereClauses = [];
 
@@ -16,13 +17,36 @@ class SecretariasDAO {
         }
 
         if (whereClauses.length > 0) {
-            sql += ' WHERE ' + whereClauses.join(' AND ');
+            const whereClause = ' WHERE ' + whereClauses.join(' AND ');
+            sql += whereClause;
+            countSql += whereClause;
         }
 
         sql += ' ORDER BY es_activo DESC, nombre ASC';
 
-        const [rows] = await pool.query(sql, params);
-        return rows;
+        // Pagination parameters
+        const page = parseInt(filters.page) || 1;
+        const limit = parseInt(filters.limit) || 20;
+        const offset = (page - 1) * limit;
+
+        sql += ' LIMIT ? OFFSET ?';
+        const queryParams = [...params, limit, offset];
+
+        const [rows] = await pool.query(sql, queryParams);
+        const [countResult] = await pool.query(countSql, params);
+
+        const total = countResult[0].total;
+        const totalPages = Math.ceil(total / limit);
+
+        return {
+            data: rows,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages
+            }
+        };
     }
 
     static async create(data) {

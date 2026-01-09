@@ -8,6 +8,13 @@ import { useConfirm } from '../../context/ConfirmContext';
 const SecretariasPage = () => {
     const [secretarias, setSecretarias] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [isFetching, setIsFetching] = useState(false);
+
+    // Ref to prevent double page increments (race condition fix)
+    const intentToFetchRef = React.useRef(false);
+
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({ nombre: '', es_activo: true });
@@ -20,26 +27,71 @@ const SecretariasPage = () => {
     const { success, error } = useToast();
     const { confirm } = useConfirm();
 
-    useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            fetchSecretarias();
-        }, 500);
+    // Fetch data logic
+    const fetchSecretarias = async (pageNum = 1, shouldReset = false) => {
+        if (isFetching && !shouldReset) return;
 
-        return () => clearTimeout(delayDebounceFn);
-    }, [searchTerm]);
+        if (shouldReset) {
+            setLoading(true);
+        } else {
+            setIsFetching(true);
+        }
 
-    const fetchSecretarias = async () => {
-        setLoading(true);
         try {
-            const data = await secretariasService.getAll({ q: searchTerm });
-            setSecretarias(data);
+            const response = await secretariasService.getAll({ q: searchTerm, page: pageNum, limit: 20 });
+            const newSecretarias = response.data || [];
+
+            setSecretarias(prev => shouldReset ? newSecretarias : [...prev, ...newSecretarias]);
+            setHasMore(pageNum < (response.meta?.totalPages || 1));
         } catch (err) {
             error('Error al cargar las secretarías.');
             console.error(err);
         } finally {
             setLoading(false);
+            setIsFetching(false);
+            intentToFetchRef.current = false; // Release lock
         }
     };
+
+    // Effect for handling search
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            intentToFetchRef.current = false; // Reset lock on search
+            setPage(1);
+            fetchSecretarias(1, true);
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
+
+    // Effect for handling page changes (infinite scroll)
+    useEffect(() => {
+        if (page > 1) {
+            fetchSecretarias(page, false);
+        }
+    }, [page]);
+
+    // Scroll listener
+    useEffect(() => {
+        const scrollContainer = document.getElementById('main-content');
+        if (!scrollContainer) return;
+
+        const handleScroll = () => {
+            if (
+                scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight * 0.8 &&
+                hasMore &&
+                !isFetching &&
+                !loading &&
+                !intentToFetchRef.current
+            ) {
+                intentToFetchRef.current = true; // Set lock immediately
+                setPage(prev => prev + 1);
+            }
+        };
+
+        scrollContainer.addEventListener('scroll', handleScroll);
+        return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }, [hasMore, isFetching, loading]);
 
     const handleShow = (secretaria = null) => {
         if (secretaria) {
