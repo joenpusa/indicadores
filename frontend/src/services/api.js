@@ -33,7 +33,7 @@ api.interceptors.response.use(
                     return Promise.reject(error);
                 }
 
-                const { data } = await axios.post('http://localhost:4000/api/auth/refresh-token', { refreshToken });
+                const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/auth/refresh-token`, { refreshToken });
 
                 if (data.data && data.data.accessToken) {
                     localStorage.setItem('accessToken', data.data.accessToken);
