@@ -3,6 +3,7 @@ import { Navbar, Container, Nav, Carousel, Card, Row, Col, Button } from 'react-
 import { Link } from 'react-router-dom';
 import { FaChartBar, FaMapMarkedAlt, FaCity, FaBuilding, FaUsers, FaInstagram, FaFacebook, FaTwitter, FaYoutube } from 'react-icons/fa';
 import { ProgressBar } from 'react-bootstrap';
+import NorteSantanderMap from '../components/NorteSantanderMap';
 
 const LandingPage = () => {
     return (
@@ -58,6 +59,9 @@ const LandingPage = () => {
                     </div>
                 </Carousel.Item>
             </Carousel>
+
+            {/* Map Section */}
+            <NorteSantanderMap />
 
             {/* Cards Section */}
             <Container className="my-5 flex-grow-1">
