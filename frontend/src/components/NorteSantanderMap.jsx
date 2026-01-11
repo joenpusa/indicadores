@@ -1,23 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Container, Row, Col, Form, Card, Button, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Form, Card, Button, Spinner, Alert } from 'react-bootstrap';
 import { MapContainer, GeoJSON, useMap, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L, { CRS } from 'leaflet'; // Import CRS
 import norteSantanderGeoJSON from '../data/norte_santander.json';
 import municipiosService from '../services/municipiosService';
+import TableMunicipios from '../modules/settings/municipios/TableMunicipios';
 
 // Fix for default Leaflet icon issues in React (keeping this as it's a common Leaflet issue)
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-
-let DefaultIcon = L.icon({
-    iconUrl: icon,
-    shadowUrl: iconShadow,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
-});
-
-L.Marker.prototype.options.icon = DefaultIcon;
+// ...
 
 // Component to handle map view updates
 const MapUpdater = ({ center, zoom, bounds }) => {
@@ -35,40 +26,22 @@ const MapUpdater = ({ center, zoom, bounds }) => {
 };
 
 const NorteSantanderMap = () => {
-    const [municipios, setMunicipios] = useState([]);
+    // We remove the internal 'municipios' state because the TableMunicipios handles fetching now.
+    // If we need data for other things (like stats), we might re-add it differently.
+
+    // const [municipios, setMunicipios] = useState([]); // REMOVED
     const [geoJsonData, setGeoJsonData] = useState(null);
     const [selectedMunicipio, setSelectedMunicipio] = useState(null);
     const [hoveredMunicipio, setHoveredMunicipio] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [mapBounds, setMapBounds] = useState(null); // Use bounds instead of center/zoom for auto-fit
+    const [mapBounds, setMapBounds] = useState(null);
 
     const geoJsonLayer = useRef(null);
 
     useEffect(() => {
-        // Load Municipality Data
-        const fetchMunicipios = async () => {
-            try {
-                const response = await municipiosService.getAll();
-                // Defensive check for array
-                if (Array.isArray(response)) {
-                    setMunicipios(response);
-                } else if (response && Array.isArray(response.data)) {
-                    setMunicipios(response.data);
-                } else {
-                    console.warn("Unexpected API response structure:", response);
-                    setMunicipios([]);
-                }
-            } catch (error) {
-                console.error("Error fetching municipios:", error);
-                setMunicipios([]);
-            }
-        };
-
-        // Load GeoJSON Data
-        // Since we are importing it directly, we can just set it
+        // Only load GeoJSON
         setGeoJsonData(norteSantanderGeoJSON);
         setLoading(false);
-        fetchMunicipios();
     }, []);
 
     // Effect to set initial bounds once GeoJSON is loaded
@@ -90,23 +63,25 @@ const NorteSantanderMap = () => {
             return;
         }
 
-        // Safe array check before .find
-        const safeMunicipios = Array.isArray(municipios) ? municipios : [];
-        const municipio = safeMunicipios.find(m => String(m.id) === String(value) || String(m.codigo) === String(value));
-
         // Use the value as the ID since that's what we pass around
         setSelectedMunicipio(String(value));
 
         // Find feature to zoom
         const feature = geoJsonData?.features.find(f =>
-            String(f.properties.id) === String(value) ||
-            (municipio && String(f.properties.id) === String(municipio.codigo))
+            String(f.properties.id) === String(value)
         );
 
         if (feature) {
             const layer = L.geoJSON(feature);
             setMapBounds(layer.getBounds());
         }
+    };
+
+    // Helper to get name
+    const getSelectedName = () => {
+        if (!selectedMunicipio || !geoJsonData) return "";
+        const feature = geoJsonData.features.find(f => String(f.properties.id) === String(selectedMunicipio));
+        return feature?.properties?.name || selectedMunicipio;
     };
 
     const handleFilterChange = (e) => {
@@ -153,6 +128,15 @@ const NorteSantanderMap = () => {
         });
     };
 
+    const onTableChange = (municipio) => {
+        if (municipio) {
+            // Prefer codigo_municipio if available (from API), otherwise fallback to id (if from simplistic object)
+            handleSelectMunicipio(municipio.codigo_municipio || municipio.id);
+        } else {
+            handleSelectMunicipio("todos");
+        }
+    };
+
     if (loading) {
         return <div className="text-center p-5"><Spinner animation="border" variant="primary" /></div>;
     }
@@ -171,28 +155,28 @@ const NorteSantanderMap = () => {
                         <Card.Body>
                             <Card.Title>Filtrar por Municipio</Card.Title>
                             <Form.Group className="mb-3">
-                                <Form.Label>Seleccione un municipio</Form.Label>
-                                <Form.Select
-                                    value={selectedMunicipio || "todos"}
-                                    onChange={handleFilterChange}
-                                >
-                                    <option value="todos">Todos los municipios</option>
-                                    {/* STRICTLY use API data for names as requested */}
-                                    {(municipios.length > 0 ? municipios : (geoJsonData?.features.map(f => ({ id: f.properties.id, name: f.properties.name })) || [])).map((m) => (
-                                        <option key={m.id} value={m.id}>
-                                            {m.name || m.nombre}
-                                        </option>
-                                    ))}
-                                </Form.Select>
+                                <TableMunicipios
+                                    selectedMunicipio={
+                                        selectedMunicipio ? {
+                                            id: selectedMunicipio,
+                                            codigo_municipio: selectedMunicipio, // Ensure display component finds this
+                                            nombre: geoJsonData?.features.find(f => String(f.properties.id) === String(selectedMunicipio))?.properties.name
+                                        } : null
+                                    }
+                                    onMunicipioChange={onTableChange}
+                                />
                             </Form.Group>
 
                             {selectedMunicipio && (
-                                <div className="mt-4">
-                                    <h5>Información</h5>
+                                <div className="mt-2 mb-3">
+                                    <Alert variant="info" className="py-2">
+                                        Seleccionaron el municipio: <strong>{getSelectedName()}</strong>
+                                    </Alert>
+                                </div>
+                            )}
 
-                                    <p>
-                                        Has seleccionado el municipio con ID: <strong>{selectedMunicipio}</strong>.
-                                    </p>
+                            {selectedMunicipio && (
+                                <div className="mt-4">
                                     <Button variant="outline-primary" onClick={() => handleSelectMunicipio("todos")} size="sm">
                                         Ver Todos
                                     </Button>
@@ -204,20 +188,18 @@ const NorteSantanderMap = () => {
                 <Col md={8}>
                     <Card className="shadow-sm border-0 overflow-hidden" style={{ height: '500px' }}>
                         <MapContainer
-                            crs={CRS.Simple} // KEY CHANGE: Use Simple CRS for pure coordinate projection (flat)
+                            crs={CRS.Simple}
                             bounds={mapBounds}
-                            zoom={8} // Initial zoom, though bounds will override it usually
+                            zoom={8}
                             center={[0, 0]}
-                            style={{ height: '100%', width: '100%', background: 'white' }} // White or transparent background
+                            style={{ height: '100%', width: '100%', background: 'white' }}
                             scrollWheelZoom={false}
                             zoomControl={false}
                             doubleClickZoom={false}
                             dragging={true}
                             attributionControl={false}
-                            minZoom={-10} // Allow zooming out far enough for Simple coords which might be large/small
+                            minZoom={-10}
                         >
-                            {/* No TileLayer */}
-
                             {geoJsonData && (
                                 <GeoJSON
                                     ref={geoJsonLayer}
