@@ -8,8 +8,8 @@ import LoginPage from './modules/auth/LoginPage';
 import DashboardPage from './modules/dashboard/DashboardPage';
 import MainLayout from './components/layout/MainLayout';
 import LandingPage from './pages/LandingPage';
-import SecretariasPage from './modules/settings/SecretariasPage';
-import MunicipiosPage from './modules/settings/MunicipiosPage';
+import SecretariasPage from './modules/settings/secretarias/SecretariasPage';
+import MunicipiosPage from './modules/settings/municipios/MunicipiosPage';
 
 function App() {
   return (

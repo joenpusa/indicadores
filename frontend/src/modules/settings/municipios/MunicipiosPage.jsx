@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button, Modal, Form, OverlayTrigger, Tooltip, Spinner, Badge, Alert } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaQuestionCircle } from 'react-icons/fa';
-import municipiosService from '../../services/municipiosService';
-import zonasService from '../../services/zonasService';
-import { useToast } from '../../context/ToastContext';
-import { useConfirm } from '../../context/ConfirmContext';
+import municipiosService from '../../../services/municipiosService';
+import zonasService from '../../../services/zonasService';
+import { useToast } from '../../../context/ToastContext';
+import { useConfirm } from '../../../context/ConfirmContext';
 
 const MunicipiosPage = () => {
     const [municipios, setMunicipios] = useState([]);

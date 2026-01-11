@@ -186,7 +186,7 @@ const NorteSantanderMap = () => {
                     </Card>
                 </Col>
                 <Col md={8}>
-                    <Card className="shadow-sm border-0 overflow-hidden" style={{ height: '500px' }}>
+                    <Card className="shadow-sm border-0 overflow-hidden" style={{ height: '700px' }}>
                         <MapContainer
                             crs={CRS.Simple}
                             bounds={mapBounds}
