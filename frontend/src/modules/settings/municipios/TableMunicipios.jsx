@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import CompTableSelect from '../../../components/ui/CompTableSelect';
-import municipiosService from '../../../services/municipiosService';
+import CompTableSelect from '@/components/ui/CompTableSelect';
+import municipiosService from '@/services/municipiosService';
 
 const TableMunicipios = ({ selectedMunicipio, onMunicipioChange }) => {
 

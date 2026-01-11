@@ -3,9 +3,9 @@ import { Container, Row, Col, Form, Card, Button, Spinner, Alert } from 'react-b
 import { MapContainer, GeoJSON, useMap, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L, { CRS } from 'leaflet'; // Import CRS
-import norteSantanderGeoJSON from '../data/norte_santander.json';
-import municipiosService from '../services/municipiosService';
-import TableMunicipios from '../modules/settings/municipios/TableMunicipios';
+import norteSantanderGeoJSON from '@/data/norte_santander.json';
+import municipiosService from '@/services/municipiosService';
+import TableMunicipios from '@/modules/settings/municipios/TableMunicipios';
 
 // Fix for default Leaflet icon issues in React (keeping this as it's a common Leaflet issue)
 // ...

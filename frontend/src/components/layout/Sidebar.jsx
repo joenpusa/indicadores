@@ -2,7 +2,7 @@ import React from 'react';
 import { Nav } from 'react-bootstrap';
 import { NavLink } from 'react-router-dom';
 import { FaHome, FaUsers, FaCog, FaSignOutAlt, FaMapMarkedAlt, FaAngleDown, FaAngleRight, FaCity, FaBuilding } from 'react-icons/fa';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {

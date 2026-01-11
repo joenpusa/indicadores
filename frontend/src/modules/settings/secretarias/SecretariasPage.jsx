@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Modal, Form, OverlayTrigger, Tooltip, Spinner, Badge, Alert } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaQuestionCircle } from 'react-icons/fa';
-import secretariasService from '../../../services/secretariasService';
-import { useToast } from '../../../context/ToastContext';
-import { useConfirm } from '../../../context/ConfirmContext';
+import secretariasService from '@/services/secretariasService';
+import { useToast } from '@/context/ToastContext';
+import { useConfirm } from '@/context/ConfirmContext';
 
 const SecretariasPage = () => {
     const [secretarias, setSecretarias] = useState([]);

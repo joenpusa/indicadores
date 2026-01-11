@@ -1,6 +1,6 @@
 import React from 'react';
 import { FaBars, FaUserCircle } from 'react-icons/fa';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 
 const Navbar = ({ toggleSidebar, isCollapsed }) => {
     const { user } = useAuth();

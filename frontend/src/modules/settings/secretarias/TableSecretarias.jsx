@@ -1,6 +1,6 @@
 import React from 'react';
-import CompTableSelect from '../../../components/ui/CompTableSelect';
-import secretariasService from '../../../services/secretariasService';
+import CompTableSelect from '@/components/ui/CompTableSelect';
+import secretariasService from '@/services/secretariasService';
 
 const TableSecretarias = ({ selectedSecretaria, onSecretariaChange }) => {
 

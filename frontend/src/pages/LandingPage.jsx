@@ -3,7 +3,7 @@ import { Navbar, Container, Nav, Carousel, Card, Row, Col, Button } from 'react-
 import { Link } from 'react-router-dom';
 import { FaChartBar, FaMapMarkedAlt, FaCity, FaBuilding, FaUsers, FaInstagram, FaFacebook, FaTwitter, FaYoutube } from 'react-icons/fa';
 import { ProgressBar } from 'react-bootstrap';
-import NorteSantanderMap from '../components/NorteSantanderMap';
+import NorteSantanderMap from '@/components/NorteSantanderMap';
 
 const LandingPage = () => {
     return (
