@@ -1,7 +1,6 @@
-// import React, { useState, useEffect } from 'react';
 import React, { useEffect, useState, useRef } from 'react';
 import { Container, Row, Col, Form, Card, Button, Spinner } from 'react-bootstrap';
-import { MapContainer, GeoJSON, useMap } from 'react-leaflet';
+import { MapContainer, GeoJSON, useMap, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L, { CRS } from 'leaflet'; // Import CRS
 import norteSantanderGeoJSON from '../data/norte_santander.json';
@@ -49,10 +48,19 @@ const NorteSantanderMap = () => {
         // Load Municipality Data
         const fetchMunicipios = async () => {
             try {
-                const data = await municipiosService.getAll();
-                setMunicipios(data);
+                const response = await municipiosService.getAll();
+                // Defensive check for array
+                if (Array.isArray(response)) {
+                    setMunicipios(response);
+                } else if (response && Array.isArray(response.data)) {
+                    setMunicipios(response.data);
+                } else {
+                    console.warn("Unexpected API response structure:", response);
+                    setMunicipios([]);
+                }
             } catch (error) {
                 console.error("Error fetching municipios:", error);
+                setMunicipios([]);
             }
         };
 
@@ -71,75 +79,76 @@ const NorteSantanderMap = () => {
         }
     }, [geoJsonData]);
 
-
-    const handleFilterChange = (e) => {
-        const value = e.target.value;
-
-        if (value === "todos") {
+    // Unified selection logic
+    const handleSelectMunicipio = (value) => {
+        if (!value || value === "todos") {
             setSelectedMunicipio(null);
             if (geoJsonData) {
                 const layer = L.geoJSON(geoJsonData);
                 setMapBounds(layer.getBounds());
             }
-        } else {
-            // Updated logic to match user's recent edit, supporting both ID structures if needed
-            const municipio = municipios.find(m => m.id.toString() === value || m.codigo === value);
+            return;
+        }
 
-            setSelectedMunicipio(value); // Keep match by value (which matches GeoJSON id)
+        // Safe array check before .find
+        const safeMunicipios = Array.isArray(municipios) ? municipios : [];
+        const municipio = safeMunicipios.find(m => String(m.id) === String(value) || String(m.codigo) === String(value));
 
-            // Find the feature in GeoJSON to center map
-            const feature = geoJsonData?.features.find(f =>
-                f.properties.id === value ||
-                (municipio && f.properties.id === municipio.codigo)
-            );
+        // Use the value as the ID since that's what we pass around
+        setSelectedMunicipio(String(value));
 
-            if (feature) {
-                const layer = L.geoJSON(feature);
-                setMapBounds(layer.getBounds());
-            }
+        // Find feature to zoom
+        const feature = geoJsonData?.features.find(f =>
+            String(f.properties.id) === String(value) ||
+            (municipio && String(f.properties.id) === String(municipio.codigo))
+        );
+
+        if (feature) {
+            const layer = L.geoJSON(feature);
+            setMapBounds(layer.getBounds());
         }
     };
 
+    const handleFilterChange = (e) => {
+        handleSelectMunicipio(e.target.value);
+    };
+
     const style = (feature) => {
-        const isSelected = selectedMunicipio === feature.properties.id;
+        // Ensure comparison is safe string-to-string
+        const isSelected = String(selectedMunicipio) === String(feature.properties.id);
+        const isHovered = String(hoveredMunicipio) === String(feature.properties.id);
         // User's preferred colors
         return {
-            fillColor: isSelected ? '#F13C20' : '#4056A1',
-            weight: 2,
+            fillColor: isSelected ? '#F13C20' : (isHovered ? '#D79922' : '#4056A1'), // State-driven styles prevent flicker conflicts
+            weight: isHovered || isSelected ? 3 : 1,
             opacity: 1,
-            color: 'white',
+            color: isHovered ? '#666' : 'white',
             dashArray: '3',
-            fillOpacity: isSelected ? 0.7 : 0.5
+            fillOpacity: isSelected ? 0.8 : (isHovered ? 0.7 : 0.5)
         };
     };
 
     const onEachFeature = (feature, layer) => {
+        // Tooltip logic for names
+        if (feature.properties && feature.properties.name) {
+            layer.bindTooltip(feature.properties.name, {
+                direction: 'top',
+                sticky: true,
+                opacity: 0.9
+            });
+        }
+
         layer.on({
             mouseover: (e) => {
-                setHoveredMunicipio(feature.properties.name);
-                e.target.setStyle({
-                    weight: 3,
-                    color: '#666',
-                    dashArray: '',
-                    fillOpacity: 0.7,
-                    fillColor: '#D79922' // Hover color
-                });
-                e.target.bringToFront();
+                setHoveredMunicipio(feature.properties.id);
+                // e.target.bringToFront(); // Removed to prevent z-index issues with tooltip
             },
             mouseout: (e) => {
                 setHoveredMunicipio(null);
-                geoJsonLayer.current.resetStyle(e.target);
             },
             click: (e) => {
-                // Determine the correct ID to use for selection state
-                // We prioritize the ID that matches our filter value logic
-                const id = feature.properties.id;
-                setSelectedMunicipio(id);
-                const featureBounds = e.target.getBounds();
-                setMapBounds(featureBounds);
-
-                // Assuming the filter select should also update, strictly we'd validte if this ID is in our options
-                // mapped options use m.id. For now, assuming direct match.
+                // Use the unified handler
+                handleSelectMunicipio(feature.properties.id);
             }
         });
     };
@@ -168,9 +177,7 @@ const NorteSantanderMap = () => {
                                     onChange={handleFilterChange}
                                 >
                                     <option value="todos">Todos los municipios</option>
-                                    {/* Merge API list with GeoJSON if possible, or just use one source.
-                                        Using GeoJSON features for dropdown guarantees map match.
-                                        But requirement said use API for filter. */}
+                                    {/* STRICTLY use API data for names as requested */}
                                     {(municipios.length > 0 ? municipios : (geoJsonData?.features.map(f => ({ id: f.properties.id, name: f.properties.name })) || [])).map((m) => (
                                         <option key={m.id} value={m.id}>
                                             {m.name || m.nombre}
@@ -181,12 +188,12 @@ const NorteSantanderMap = () => {
 
                             {selectedMunicipio && (
                                 <div className="mt-4">
-                                    <h5>Información:</h5>
-                                    {/* Placeholder for specific municipio info if available in 'municipios' state */}
+                                    <h5>Información</h5>
+
                                     <p>
                                         Has seleccionado el municipio con ID: <strong>{selectedMunicipio}</strong>.
                                     </p>
-                                    <Button variant="outline-primary" onClick={() => handleFilterChange({ target: { value: 'todos' } })} size="sm">
+                                    <Button variant="outline-primary" onClick={() => handleSelectMunicipio("todos")} size="sm">
                                         Ver Todos
                                     </Button>
                                 </div>
