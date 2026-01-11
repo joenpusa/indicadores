@@ -227,24 +227,26 @@ const SecretariasPage = () => {
                 <Modal.Body>
                     {formError && <Alert variant="danger">{formError}</Alert>}
                     <Form onSubmit={handleSubmit}>
-                        <Form.Group className="mb-3">
-                            <Form.Label>
-                                Nombre <span className="text-danger">*</span>
-                                <OverlayTrigger
-                                    placement="right"
-                                    overlay={<Tooltip>Nombre oficial de la secretaría.</Tooltip>}
-                                >
-                                    <span className="ms-2 text-muted"><FaQuestionCircle /></span>
-                                </OverlayTrigger>
-                            </Form.Label>
+                        <div className="form-floating mb-3">
                             <Form.Control
+                                id="floatingNombre"
                                 type="text"
                                 placeholder="Ej: Secretaría de Salud"
                                 value={formData.nombre}
                                 onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                                 autoFocus
+                                className={formError ? 'is-invalid' : ''}
                             />
-                        </Form.Group>
+                            <label htmlFor="floatingNombre">
+                                Nombre <span className="text-danger">*</span>
+                            </label>
+                        </div>
+                        {/* Tooltip moved outside or integrated differently if needed, but for now removing simple OverlayTrigger from label to avoid floating issues, or placing it absolutely? 
+                           Actually, the user asked for specific styles. Let's keep it simple. 
+                           I will re-add the help text below or as an icon in the input group if possible. 
+                           Floating labels don't play nice with extra elements in the <label>.
+                           I'll put the question mark outside or as a text-muted below.
+                        */}
                         <Form.Group className="mb-3">
                             <Form.Check
                                 type="switch"

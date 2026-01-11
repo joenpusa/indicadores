@@ -295,35 +295,50 @@ const MunicipiosPage = () => {
                 <Modal.Body>
                     {formError && <Alert variant="danger">{formError}</Alert>}
                     <Form onSubmit={handleSubmit}>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Código <span className="text-danger">*</span></Form.Label>
+                        <div className="row g-2 mb-3">
+                            <div className="col-md-4">
+                                <div className="form-floating">
+                                    <Form.Control
+                                        type="text"
+                                        id="floatingCodigo"
+                                        placeholder="Código"
+                                        value={formData.codigo_municipio}
+                                        onChange={(e) => setFormData({ ...formData, codigo_municipio: e.target.value })}
+                                        autoFocus
+                                        className={formError && !formData.codigo_municipio ? 'is-invalid' : ''}
+                                    />
+                                    <label htmlFor="floatingCodigo">Código <span className="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div className="col-md-8">
+                                <div className="form-floating">
+                                    <Form.Select
+                                        id="floatingZona"
+                                        value={formData.id_zona}
+                                        onChange={(e) => setFormData({ ...formData, id_zona: e.target.value })}
+                                        aria-label="Seleccione zona"
+                                        className={formError && !formData.id_zona ? 'is-invalid' : ''}
+                                    >
+                                        <option value="">Seleccione una zona...</option>
+                                        {zonas.map(z => (
+                                            <option key={z.id_zona} value={z.id_zona}>{z.nombre}</option>
+                                        ))}
+                                    </Form.Select>
+                                    <label htmlFor="floatingZona">Zona <span className="text-danger">*</span></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="form-floating mb-3">
                             <Form.Control
                                 type="text"
-                                value={formData.codigo_municipio}
-                                onChange={(e) => setFormData({ ...formData, codigo_municipio: e.target.value })}
-                                autoFocus
-                            />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Nombre <span className="text-danger">*</span></Form.Label>
-                            <Form.Control
-                                type="text"
+                                id="floatingNombre"
+                                placeholder="Nombre del municipio"
                                 value={formData.nombre}
                                 onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                                className={formError && !formData.nombre ? 'is-invalid' : ''}
                             />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Zona <span className="text-danger">*</span></Form.Label>
-                            <Form.Select
-                                value={formData.id_zona}
-                                onChange={(e) => setFormData({ ...formData, id_zona: e.target.value })}
-                            >
-                                <option value="">Seleccione una zona...</option>
-                                {zonas.map(z => (
-                                    <option key={z.id_zona} value={z.id_zona}>{z.nombre}</option>
-                                ))}
-                            </Form.Select>
-                        </Form.Group>
+                            <label htmlFor="floatingNombre">Nombre <span className="text-danger">*</span></label>
+                        </div>
                         <Form.Group className="mb-3">
                             <Form.Check
                                 type="switch"
