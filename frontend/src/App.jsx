@@ -10,6 +10,7 @@ import MainLayout from './components/layout/MainLayout';
 import LandingPage from './pages/LandingPage';
 import SecretariasPage from './modules/settings/secretarias/SecretariasPage';
 import MunicipiosPage from './modules/settings/municipios/MunicipiosPage';
+import RolesPage from './modules/settings/roles/RolesPage';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
                   <Route path="users" element={<h2>Usuarios Module placeholder</h2>} />
                   <Route path="settings/secretarias" element={<SecretariasPage />} />
                   <Route path="settings/municipios" element={<MunicipiosPage />} />
+                  <Route path="roles" element={<RolesPage />} />
                   <Route path="settings" element={<h2>Settings Module placeholder</h2>} />
                 </Route>
               </Route>

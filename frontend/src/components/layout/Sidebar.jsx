@@ -1,13 +1,14 @@
 import React from 'react';
 import { Nav } from 'react-bootstrap';
 import { NavLink } from 'react-router-dom';
-import { FaHome, FaUsers, FaCog, FaSignOutAlt, FaMapMarkedAlt, FaAngleDown, FaAngleRight, FaCity, FaBuilding } from 'react-icons/fa';
+import { FaHome, FaUsers, FaCog, FaSignOutAlt, FaMapMarkedAlt, FaAngleDown, FaAngleRight, FaCity, FaBuilding, FaUser, FaUserShield } from 'react-icons/fa';
 import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
     const { logout } = useAuth();
     const [isConfigOpen, setIsConfigOpen] = useState(false);
+    const [isUsersOpen, setIsUsersOpen] = useState(false);
 
     const handleExpand = () => {
         if (isCollapsed && setIsCollapsed) {
@@ -19,6 +20,12 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
         e.stopPropagation(); // Prevent triggering handleExpand twice if not needed
         handleExpand();
         setIsConfigOpen(!isConfigOpen);
+    };
+
+    const toggleUsers = (e) => {
+        e.stopPropagation();
+        handleExpand();
+        setIsUsersOpen(!isUsersOpen);
     };
 
     const sidebarWidth = isCollapsed ? '80px' : '280px';
@@ -47,13 +54,26 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                     </NavLink>
                 </Nav.Item>
                 <Nav.Item>
-                    <NavLink
-                        to="/dashboard/users"
-                        className={`nav-link text-white sidebar-link d-flex align-items-center ${isCollapsed ? 'justify-content-center p-2' : ''}`}
-                        onClick={handleExpand}
+                    <div
+                        className={`nav-link text-white sidebar-link d-flex align-items-center justify-content-between ${isCollapsed ? 'justify-content-center p-2' : ''}`}
+                        onClick={toggleUsers}
+                        style={{ cursor: 'pointer' }}
                     >
-                        <FaUsers className={`${isCollapsed ? 'fs-4' : 'me-2 fs-5'}`} /> {!isCollapsed && 'Usuarios'}
-                    </NavLink>
+                        <div className={`d-flex align-items-center ${isCollapsed ? 'justify-content-center' : ''}`}>
+                            <FaUsers className={`${isCollapsed ? 'fs-4' : 'me-2 fs-5'}`} /> {!isCollapsed && 'Usuarios'}
+                        </div>
+                        {!isCollapsed && (isUsersOpen ? <FaAngleDown /> : <FaAngleRight />)}
+                    </div>
+                    {isUsersOpen && !isCollapsed && (
+                        <div className="ms-4 mt-1">
+                            <NavLink to="/dashboard/users" className="nav-link text-white sidebar-link py-1 d-flex align-items-center">
+                                <FaUser className="me-2" /> Usuarios
+                            </NavLink>
+                            <NavLink to="/dashboard/roles" className="nav-link text-white sidebar-link py-1 d-flex align-items-center">
+                                <FaUserShield className="me-2" /> Roles
+                            </NavLink>
+                        </div>
+                    )}
                 </Nav.Item>
                 <Nav.Item>
                     <div
