@@ -32,7 +32,7 @@ app.use('/api/secretarias', secretariasRoutes);
 app.use('/api/roles', require('./routes/roles'));
 app.use('/api/municipios', require('./routes/municipios.routes'));
 app.use('/api/zonas', require('./routes/zonas.routes'));
-// app.use('/api/users', userRoutes);
+app.use('/api/users', require('./routes/users.routes'));
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

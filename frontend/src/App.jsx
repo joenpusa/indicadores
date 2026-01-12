@@ -11,6 +11,7 @@ import LandingPage from './pages/LandingPage';
 import SecretariasPage from './modules/settings/secretarias/SecretariasPage';
 import MunicipiosPage from './modules/settings/municipios/MunicipiosPage';
 import RolesPage from './modules/settings/roles/RolesPage';
+import UsersPage from '@/modules/users/UsersPage';
 
 function App() {
   return (
@@ -26,7 +27,7 @@ function App() {
                 <Route element={<MainLayout />}>
                   <Route index element={<DashboardPage />} />
                   {/* Add more private routes here */}
-                  <Route path="users" element={<h2>Usuarios Module placeholder</h2>} />
+                  <Route path="users" element={<UsersPage />} />
                   <Route path="settings/secretarias" element={<SecretariasPage />} />
                   <Route path="settings/municipios" element={<MunicipiosPage />} />
                   <Route path="roles" element={<RolesPage />} />
