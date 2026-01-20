@@ -12,6 +12,10 @@ import SecretariasPage from './modules/settings/secretarias/SecretariasPage';
 import MunicipiosPage from './modules/settings/municipios/MunicipiosPage';
 import RolesPage from './modules/settings/roles/RolesPage';
 import UsersPage from '@/modules/users/UsersPage';
+import IndicadoresPage from './modules/indicadores/IndicadoresPage';
+import VariablesPage from './modules/indicadores/VariablesPage';
+import VisualizacionPage from './modules/indicadores/VisualizacionPage';
+import CargaDatosPage from './modules/indicadores/CargaDatosPage';
 
 function App() {
   return (
@@ -28,6 +32,10 @@ function App() {
                   <Route index element={<DashboardPage />} />
                   {/* Add more private routes here */}
                   <Route path="users" element={<UsersPage />} />
+                  <Route path="indicadores" element={<IndicadoresPage />} />
+                  <Route path="indicadores/:id/variables" element={<VariablesPage />} />
+                  <Route path="indicadores/:id/visualizacion" element={<VisualizacionPage />} />
+                  <Route path="indicadores/:id/carga" element={<CargaDatosPage />} />
                   <Route path="settings/secretarias" element={<SecretariasPage />} />
                   <Route path="settings/municipios" element={<MunicipiosPage />} />
                   <Route path="roles" element={<RolesPage />} />

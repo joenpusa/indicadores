@@ -24,6 +24,7 @@ app.get('/', (req, res) => {
 // Import Routes
 const authRoutes = require('./routes/auth.routes');
 const secretariasRoutes = require('./routes/secretarias');
+const indicadoresRoutes = require('./routes/indicadores.routes');
 // const userRoutes = require('./routes/user.routes');
 
 // Use Routes
@@ -33,6 +34,7 @@ app.use('/api/roles', require('./routes/roles'));
 app.use('/api/municipios', require('./routes/municipios.routes'));
 app.use('/api/zonas', require('./routes/zonas.routes'));
 app.use('/api/users', require('./routes/users.routes'));
+app.use('/api/indicadores', indicadoresRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

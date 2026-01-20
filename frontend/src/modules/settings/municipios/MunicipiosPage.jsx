@@ -266,7 +266,7 @@ const MunicipiosPage = () => {
                                             </Badge>
                                         </div>
                                         <div className="text-muted small">
-                                            Zone: {mun.nombre_zona || 'Sin Zona'}
+                                            Zona: {mun.nombre_zona || 'Sin Zona'}
                                         </div>
                                     </div>
 

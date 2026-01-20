@@ -54,6 +54,15 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                     </NavLink>
                 </Nav.Item>
                 <Nav.Item>
+                    <NavLink
+                        to="/dashboard/indicadores"
+                        className={`nav-link text-white sidebar-link d-flex align-items-center ${isCollapsed ? 'justify-content-center p-2' : ''}`}
+                        onClick={handleExpand}
+                    >
+                        <FaMapMarkedAlt className={`${isCollapsed ? 'fs-4' : 'me-2 fs-5'}`} /> {!isCollapsed && 'Indicadores'}
+                    </NavLink>
+                </Nav.Item>
+                <Nav.Item>
                     <div
                         className={`nav-link text-white sidebar-link d-flex align-items-center justify-content-between ${isCollapsed ? 'justify-content-center p-2' : ''}`}
                         onClick={toggleUsers}
