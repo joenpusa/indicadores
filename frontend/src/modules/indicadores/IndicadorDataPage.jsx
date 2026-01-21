@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Card, Table, Spinner, Alert } from 'react-bootstrap';
-import { FaArrowLeft, FaTable } from 'react-icons/fa';
+import { Button, Card, Table, Spinner, Alert, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { FaArrowLeft, FaTable, FaTrash } from 'react-icons/fa';
 import indicadoresService from '../../services/indicadoresService';
+import { useConfirm } from '../../context/ConfirmContext';
+import { useToast } from '../../context/ToastContext';
 
 const IndicadorDataPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { confirm } = useConfirm();
+    const { success, error: showError } = useToast();
 
     const [indicador, setIndicador] = useState(null);
     const [variables, setVariables] = useState([]);
@@ -23,7 +27,7 @@ const IndicadorDataPage = () => {
             const [indData, varsData, regsData] = await Promise.all([
                 indicadoresService.getById(id),
                 indicadoresService.getVariables(id),
-                indicadoresService.getRegistros(id) // Now returns list with values
+                indicadoresService.getRegistros(id)
             ]);
             setIndicador(indData);
             setVariables(varsData);
@@ -32,6 +36,19 @@ const IndicadorDataPage = () => {
             console.error("Error loading data", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDelete = async (idRegistro) => {
+        if (await confirm({ message: '¿Estás seguro de eliminar este registro?', variant: 'danger' })) {
+            try {
+                await indicadoresService.deleteRegistro(id, idRegistro);
+                success('Registro eliminado');
+                loadData();
+            } catch (error) {
+                console.error(error);
+                showError('Error al eliminar registro');
+            }
         }
     };
 
@@ -79,6 +96,7 @@ const IndicadorDataPage = () => {
                                         <th key={v.id_variable}>{v.nombre} <small className="text-muted fw-normal">({v.unidad})</small></th>
                                     ))}
                                     <th>Descripción</th>
+                                    <th style={{ width: '50px' }}>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -92,11 +110,21 @@ const IndicadorDataPage = () => {
                                                 <td key={v.id_variable}>{row.valores ? row.valores[v.id_variable] : '-'}</td>
                                             ))}
                                             <td className="small text-muted">{row.descripcion}</td>
+                                            <td className="text-center">
+                                                <Button
+                                                    variant="outline-danger"
+                                                    size="sm"
+                                                    className="p-1"
+                                                    onClick={() => handleDelete(row.id_registro)}
+                                                >
+                                                    <FaTrash size={12} />
+                                                </Button>
+                                            </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={4 + variables.length} className="text-center py-4 text-muted">
+                                        <td colSpan={5 + variables.length} className="text-center py-4 text-muted">
                                             No hay registros cargados aún.
                                         </td>
                                     </tr>

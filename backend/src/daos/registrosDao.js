@@ -10,6 +10,11 @@ class RegistrosDAO {
         return result.insertId;
     }
 
+    static async delete(id) {
+        const [result] = await pool.query('DELETE FROM indicador_registros WHERE id_registro = ?', [id]);
+        return result.affectedRows;
+    }
+
     static async getByIndicadorAndPeriodo(idIndicador, idPeriodo) {
         let sql = `SELECT r.*, m.nombre as nombre_municipio, p.tipo, p.anio, p.numero, m.codigo_municipio
              FROM indicador_registros r
