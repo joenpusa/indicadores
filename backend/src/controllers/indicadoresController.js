@@ -85,10 +85,10 @@ class IndicadoresController {
                 return res.status(404).json({ message: 'Indicador o Periodo no encontrado' });
             }
 
-            const tiposPermitidos = indicador.periodicidades || []; // ['anual', 'semestral']
+            const tiposPermitidos = indicador.periodicidad ? [indicador.periodicidad] : []; // Now a single string
             if (!tiposPermitidos.includes(periodo.tipo.toLowerCase())) {
                 return res.status(400).json({
-                    message: `El periodo seleccionado (${periodo.tipo}) no corresponde a la periodicidad del indicador (${tiposPermitidos.join(', ')})`
+                    message: `El periodo seleccionado (${periodo.tipo}) no corresponde a la periodicidad del indicador (${indicador.periodicidad})`
                 });
             }
 

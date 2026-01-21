@@ -11,7 +11,7 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
         descripcion: '',
         unidad_base: '',
         es_activo: true,
-        periodicidades: []
+        periodicidad: ''
     });
     // Store selected object for TableSecretarias
     const [selectedSecretaria, setSelectedSecretaria] = useState(null);
@@ -28,7 +28,7 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
                     descripcion: indicador.descripcion || '',
                     unidad_base: indicador.unidad_base || '',
                     es_activo: indicador.es_activo === 1,
-                    periodicidades: indicador.periodicidades || []
+                    periodicidad: indicador.periodicidad || ''
                 });
                 // If we have the name, we set it for display. If only ID is available, TableSecretarias might need fetching or just display ID (usually passed as object)
                 // Indicador object usually has nombre_secretaria from join.
@@ -43,7 +43,7 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
                     descripcion: '',
                     unidad_base: '',
                     es_activo: true,
-                    periodicidades: []
+                    periodicidad: ''
                 });
                 setSelectedSecretaria(null);
             }
@@ -53,19 +53,10 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        if (name === 'periodicidades') {
-            // For Select, value will be single string.
-            // We save it as array for backend compatibility [value]
-            setFormData(prev => ({
-                ...prev,
-                periodicidades: value ? [value] : []
-            }));
-        } else {
-            setFormData(prev => ({
-                ...prev,
-                [name]: type === 'checkbox' ? checked : value
-            }));
-        }
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
     };
 
     const handleSubmit = async (e) => {
@@ -165,8 +156,8 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
                             <div className="mb-3">
                                 <FloatingLabel controlId="floatingPeriodicidad" label="Periodicidad permitida *">
                                     <Form.Select
-                                        name="periodicidades"
-                                        value={formData.periodicidades.length > 0 ? formData.periodicidades[0] : ''}
+                                        name="periodicidad"
+                                        value={formData.periodicidad}
                                         onChange={handleChange}
                                         required
                                     >

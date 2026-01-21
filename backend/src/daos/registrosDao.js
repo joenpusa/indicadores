@@ -54,14 +54,14 @@ class RegistrosDAO {
 
     static async getMunicipioIdByCode(code) {
         // Handle string/number issues
-        const [rows] = await pool.query('SELECT id_municipio FROM municipios WHERE codigo_dane = ? LIMIT 1', [code]);
+        const [rows] = await pool.query('SELECT id_municipio FROM municipios WHERE codigo_municipio = ? LIMIT 1', [code]);
         return rows.length > 0 ? rows[0].id_municipio : null;
     }
 
     static async getAllMunicipiosMap() {
-        const [rows] = await pool.query('SELECT id_municipio, codigo_dane FROM municipios');
+        const [rows] = await pool.query('SELECT id_municipio, codigo_municipio FROM municipios');
         const map = new Map();
-        rows.forEach(r => map.set(String(r.codigo_dane), r.id_municipio));
+        rows.forEach(r => map.set(String(r.codigo_municipio), r.id_municipio));
         return map;
     }
 }

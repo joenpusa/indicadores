@@ -31,8 +31,6 @@ class IndicadoresDAO {
         if (whereClauses.length > 0) {
             const whereClause = ' WHERE ' + whereClauses.join(' AND ');
             sql += whereClause;
-            countSql += whereClause; // Note: Joined table might be needed for count if filtering by secretaria name search, but for simple counts usually main table enough if filters don't depend on join. However, here q searches secretaria name, so we need join for count too if q is present. 
-            // Correcting countSql to include join if needed or simple check.
             if (filters.q) {
                 countSql = `
                     SELECT COUNT(*) as total 
@@ -54,16 +52,6 @@ class IndicadoresDAO {
             params.push(limit, offset);
         }
 
-        // For count query, we need params without limit/offset
-        // But we pushed limit/offset to params already. 
-        // We need separate params array for count or slice it.
-        // Let's refactor slightly to be safe.
-
-        // Re-construct params for main query vs count query is cleaner.
-        // But for time saving, let's just use slicing for countParams if we haven't pushed limit yet.
-        // Wait, I pushed it. 
-
-        // Let's redo parameters more cleanly in next step if needed, but here:
         const countParams = params.slice(0, params.length - (filters.limit && filters.page ? 2 : 0));
 
         const [rows] = await pool.query(sql, params);
@@ -83,16 +71,15 @@ class IndicadoresDAO {
     }
 
     static async create(data) {
-        const { id_secretaria, nombre, descripcion, unidad_base, es_activo } = data;
+        const { id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad } = data;
         const [result] = await pool.query(
-            'INSERT INTO indicadores (id_secretaria, nombre, descripcion, unidad_base, es_activo) VALUES (?, ?, ?, ?, ?)',
-            [id_secretaria, nombre, descripcion, unidad_base, es_activo]
+            'INSERT INTO indicadores (id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad) VALUES (?, ?, ?, ?, ?, ?)',
+            [id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad]
         );
         return result.insertId;
     }
 
     static async update(id, data) {
-        // Build dynamic update query
         const fields = [];
         const params = [];
 
@@ -101,6 +88,7 @@ class IndicadoresDAO {
         if (data.unidad_base !== undefined) { fields.push('unidad_base = ?'); params.push(data.unidad_base); }
         if (data.es_activo !== undefined) { fields.push('es_activo = ?'); params.push(data.es_activo); }
         if (data.id_secretaria !== undefined) { fields.push('id_secretaria = ?'); params.push(data.id_secretaria); }
+        if (data.periodicidad !== undefined) { fields.push('periodicidad = ?'); params.push(data.periodicidad); }
 
         if (fields.length === 0) return false;
 
@@ -112,34 +100,19 @@ class IndicadoresDAO {
 
     static async getById(id) {
         const [rows] = await pool.query(`
-            SELECT i.*, s.nombre as nombre_secretaria, 
-                   GROUP_CONCAT(ip.tipo) as periodicidades_str
+            SELECT i.*, s.nombre as nombre_secretaria
             FROM indicadores i
             LEFT JOIN secretarias s ON i.id_secretaria = s.id_secretaria
-            LEFT JOIN indicador_periodicidades ip ON i.id_indicador = ip.id_indicador
             WHERE i.id_indicador = ?
-            GROUP BY i.id_indicador
         `, [id]);
 
         if (rows.length > 0) {
-            const row = rows[0];
-            row.periodicidades = row.periodicidades_str ? row.periodicidades_str.split(',') : [];
-            delete row.periodicidades_str;
-            return row;
+            return rows[0];
         }
         return null;
     }
 
     static async delete(id) {
-        // Logical delete preferred usually, but user asked for CRUD. 
-        // If "es_activo" exists, maybe just toggle it? 
-        // User requirements: "es_activo TINYINT DEFAULT 1".
-        // I'll support soft delete via update, but if DELETE is requested specifically...
-        // Let's implement hard delete but it might fail due to foreign keys.
-        // It's safer to rely on es_activo for "deleting" from UI perspective, 
-        // but physically deleting might be needed for cleanup.
-        // Given the complex relations (variables, records), hard delete is risky without cascading.
-        // I will implement it, but controller should probably use update(es_active=0).
         await pool.query('DELETE FROM indicadores WHERE id_indicador = ?', [id]);
         return true;
     }

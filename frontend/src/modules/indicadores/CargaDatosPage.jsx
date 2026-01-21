@@ -51,8 +51,8 @@ const CargaDatosPage = () => {
             setPeriodos(periodsData);
 
             // Auto-select type if only one available
-            if (indData.periodicidades && indData.periodicidades.length === 1) {
-                setSelectedType(indData.periodicidades[0]);
+            if (indData.periodicidad) {
+                setSelectedType(indData.periodicidad);
             }
         } catch (error) {
             console.error("Error loading data", error);
@@ -63,7 +63,7 @@ const CargaDatosPage = () => {
     };
 
     // Filter Logic
-    const availableTypes = indicador?.periodicidades || [];
+    const availableTypes = indicador?.periodicidad ? [indicador.periodicidad] : [];
 
     // Derived Options based on Type
     const availableYears = [...new Set(periodos
