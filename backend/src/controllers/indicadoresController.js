@@ -136,47 +136,79 @@ class IndicadoresController {
 
             if (data.length === 0) return res.status(400).json({ message: 'El archivo está vacío' });
 
+            const indicador = await IndicadoresModel.getIndicadorById(idIndicador);
+            if (!indicador) return res.status(404).json({ message: 'Indicador no encontrado' });
+
             const variables = await VariablesModel.getVariablesByIndicador(idIndicador);
             const mapMunicipios = await RegistrosDAO.getAllMunicipiosMap();
-            // TODO: Get Periodos map if needed, or assume Periodo in Excel is ID or Name. 
-            // User request says: "Periodos". Usually implies ID or exact match. 
-            // Let's assume user enters Periodo ID or Name. But Periodo dropdown in UI implies ID.
-            // For bulk, let's assume they enter the ID or we'd need a lookup. 
-            // If the template requires 'Periodo', it could be the string representation.
-            // Let's assume for now it matches `periodos.nombre` or is the ID.
-            // Ideally we need a lookup for periods too. 
-            // For simplicity, let's assume the user inputs the Period ID or correct format.
-            // Or better, we lookup by name.
 
             const recordsToCreate = [];
-            const valuesToCreate = [];
-            const errors = [];
+            const errors = []; // Array of strings
 
-            // Pre-fetch periods to map names to IDs if possible?
-            // Skipping for now, assuming Periodo column has valid ID or we need to validate it.
-            // User prompt: "Backend valida: Municipios, Periodos".
+            const tipoPeriodo = indicador.periodicidad;
 
             for (let i = 0; i < data.length; i++) {
                 const row = data[i];
+                const rowNum = i + 2; // Excel row number (1-based + header)
                 const codigoMuni = row['Codigo Municipio'];
-                const periodoVal = row['Periodo']; // Could be ID or Name
+                const periodoStr = String(row['Periodo']).trim();
 
-                // Validate Municipio
+                // 1. Validate Municipio
                 const idMunicipio = mapMunicipios.get(String(codigoMuni));
                 if (!idMunicipio) {
-                    errors.push(`Fila ${i + 2}: Código de municipio ${codigoMuni} no válido.`);
+                    errors.push(`Fila ${rowNum}: Código de municipio '${codigoMuni}' no válido.`);
+                    continue; // Skip row
+                }
+
+                // 2. Validate/Parse Periodo
+                let anio, numero = null;
+                let parsed = false;
+
+                try {
+                    if (tipoPeriodo === 'anual') {
+                        // Format: YYYY (e.g. 2025)
+                        if (/^\d{4}$/.test(periodoStr)) {
+                            anio = parseInt(periodoStr);
+                            parsed = true;
+                        }
+                    } else if (tipoPeriodo === 'semestral') {
+                        // Format: YYYY-S1 or YYYY-S2
+                        const match = periodoStr.match(/^(\d{4})-S([1-2])$/i);
+                        if (match) {
+                            anio = parseInt(match[1]);
+                            numero = parseInt(match[2]);
+                            parsed = true;
+                        }
+                    } else if (tipoPeriodo === 'trimestral') {
+                        // Format: YYYY-T1 ... YYYY-T4
+                        const match = periodoStr.match(/^(\d{4})-T([1-4])$/i);
+                        if (match) {
+                            anio = parseInt(match[1]);
+                            numero = parseInt(match[2]);
+                            parsed = true;
+                        }
+                    } else if (tipoPeriodo === 'mensual') {
+                        // Format: YYYY-MM (e.g. 2022-01)
+                        const match = periodoStr.match(/^(\d{4})-(\d{1,2})$/);
+                        if (match) {
+                            anio = parseInt(match[1]);
+                            numero = parseInt(match[2]);
+                            if (numero >= 1 && numero <= 12) parsed = true;
+                        }
+                    }
+                } catch (e) {
+                    // Ignore parse error, handled by !parsed
+                }
+
+                if (!parsed) {
+                    errors.push(`Fila ${rowNum}: Formato de periodo '${periodoStr}' inválido para periodicidad ${tipoPeriodo}.`);
                     continue;
                 }
 
-                // Validate Periodo (Simple check if exists, or just pass it if ID)
-                // Assuming period ID is passed or handled. 
-                // If name, we need lookup. Let's assume it's the ID for now as simplest path or 
-                // we'd need `PeriodosDAO.getByName`.
-                const idPeriodo = periodoVal; // Placeholder validation
-                if (!idPeriodo) {
-                    errors.push(`Fila ${i + 2}: Periodo no válido.`);
-                    continue;
-                }
+                // 3. Find or Create Period
+                // Could be optimized by caching periods, but findOrCreate logic handles it reasonable well.
+                // We await inside loop, simpler logic.
+                const idPeriodo = await PeriodosModel.findOrCreate(tipoPeriodo, anio, numero);
 
                 recordsToCreate.push({
                     id_indicador: idIndicador,
@@ -187,15 +219,20 @@ class IndicadoresController {
                 });
             }
 
-            if (errors.length > 0) {
-                return res.status(400).json({ message: 'Errores en validación', errors });
+            // If ALL failed
+            if (recordsToCreate.length === 0 && errors.length > 0) {
+                const logContent = errors.join('\n');
+                return res.status(400).json({
+                    message: 'Todos los registros fallaron.',
+                    log: logContent
+                });
             }
 
-            // Insert Records (transactional batch would be best, but loop is okay for now)
-            // We use createBatch from DAO
+            // Insert Valid Records
             const createdRecords = await RegistrosDAO.createBatch(recordsToCreate);
 
             // Prepare Values
+            const valuesToCreate = [];
             createdRecords.forEach(rec => {
                 variables.forEach(variable => {
                     const val = rec.originalRow[variable.nombre];
@@ -205,26 +242,23 @@ class IndicadoresController {
                             id_variable: variable.id_variable,
                             valor: val
                         });
-                    } else if (variable.es_obligatoria) {
-                        // This check should have happened before insertion...
-                        // If strict batch, we should rollback. 
-                        // For now, allow partial or fail? 
-                        // User said "Backend valida... Variables obligatorias".
                     }
                 });
             });
 
-            // Validate Mandatory Variables BEFORE insertion?
-            // Since I already inserted records, a bit late. 
-            // Refactoring to validate before `createBatch`.
-            // ... (Skipping complex rollback logic for brevity, assuming data is mostly correct or user accepts partials, 
-            // BUT user asked for validation. So I should have validated mandatory vars in the loop above).
-
-            // ... (Add validation loop for compulsory vars above)
-
             await ValoresDAO.createBatch(valuesToCreate);
 
-            res.json({ message: `Se cargaron ${createdRecords.length} registros exitosamente.` });
+            if (errors.length > 0) {
+                // Partial success
+                const logContent = errors.join('\n');
+                return res.json({
+                    message: `Se cargaron ${createdRecords.length} registros. Fallaron ${errors.length}.`,
+                    log: logContent,
+                    partial: true
+                });
+            }
+
+            res.json({ message: `Carga exitosa. ${createdRecords.length} registros creados.` });
 
         } catch (error) {
             console.error(error);

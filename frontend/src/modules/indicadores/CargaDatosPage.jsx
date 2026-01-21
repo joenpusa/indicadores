@@ -146,13 +146,42 @@ const CargaDatosPage = () => {
 
         try {
             const response = await indicadoresService.uploadData(id, data, true);
-            setAlert({ type: 'success', text: response.message || 'Carga masiva completada.' });
+
+            if (response.log) {
+                // Determine alert type (warning if partial, success if success with weird log?) 
+                // Mostly partial success if log exists in success block.
+                setAlert({
+                    type: 'warning',
+                    text: response.message || 'Carga completada con advertencias. Revisa el log de errores.'
+                });
+
+                // Trigger download
+                const blob = new Blob([response.log], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'errores_carga.txt';
+                a.click();
+            } else {
+                setAlert({ type: 'success', text: response.message || 'Carga masiva completada.' });
+            }
+
             setFile(null);
         } catch (error) {
             console.error(error);
             const msg = error.response?.data?.message || 'Error en la carga masiva.';
-            const details = error.response?.data?.errors ? error.response.data.errors.join(', ') : '';
-            setAlert({ type: 'danger', text: `${msg} ${details}` });
+
+            // If error response has log
+            if (error.response?.data?.log) {
+                const blob = new Blob([error.response.data.log], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'errores_carga.txt';
+                a.click();
+            }
+
+            setAlert({ type: 'danger', text: msg });
         } finally {
             setSubmitting(false);
         }
@@ -336,8 +365,14 @@ const CargaDatosPage = () => {
                                 Para la carga masiva:
                                 <ul>
                                     <li>Descarga la plantilla.</li>
-                                    <li>Usa el ID del periodo correcto.</li>
                                     <li>Usa códigos DANE para municipios.</li>
+                                    <li><strong>Formato Periodo:</strong></li>
+                                    <ul>
+                                        <li>Anual: 2024</li>
+                                        <li>Semestral: 2024-S1, 2024-S2</li>
+                                        <li>Trimestral: 2024-T1 ... 2024-T4</li>
+                                        <li>Mensual: 2024-01 ... 2024-12</li>
+                                    </ul>
                                 </ul>
                             </p>
                         </Card.Body>
