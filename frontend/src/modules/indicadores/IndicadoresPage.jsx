@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Form, FormControl, InputGroup, Card, Badge, Spinner, Alert, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { FaPlus, FaSearch, FaEdit, FaDatabase, FaChartBar, FaFilter, FaInfoCircle, FaUpload } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaEdit, FaDatabase, FaChartBar, FaFilter, FaInfoCircle, FaUpload, FaTable } from 'react-icons/fa';
 import indicadoresService from '../../services/indicadoresService';
 import IndicadorForm from './components/IndicadorForm';
 
@@ -173,6 +173,15 @@ const IndicadoresPage = () => {
                                                     onClick={() => navigate(`/dashboard/indicadores/${indicador.id_indicador}/variables`)}
                                                 >
                                                     <FaDatabase />
+                                                </Button>
+                                            </OverlayTrigger>
+                                            <OverlayTrigger placement="top" overlay={<Tooltip>Ver Datos</Tooltip>}>
+                                                <Button
+                                                    variant="outline-primary"
+                                                    size="sm"
+                                                    onClick={() => navigate(`/dashboard/indicadores/${indicador.id_indicador}/data`)}
+                                                >
+                                                    <FaTable />
                                                 </Button>
                                             </OverlayTrigger>
                                             <OverlayTrigger placement="top" overlay={<Tooltip>Configurar Visualización</Tooltip>}>

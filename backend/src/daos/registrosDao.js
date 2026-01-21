@@ -11,13 +11,22 @@ class RegistrosDAO {
     }
 
     static async getByIndicadorAndPeriodo(idIndicador, idPeriodo) {
-        const [rows] = await pool.query(
-            `SELECT r.*, m.nombre as nombre_municipio
+        let sql = `SELECT r.*, m.nombre as nombre_municipio, p.tipo, p.anio, p.numero, m.codigo_municipio
              FROM indicador_registros r
              JOIN municipios m ON r.id_municipio = m.id_municipio
-             WHERE r.id_indicador = ? AND r.id_periodo = ?`,
-            [idIndicador, idPeriodo]
-        );
+             JOIN periodos p ON r.id_periodo = p.id_periodo
+             WHERE r.id_indicador = ?`;
+
+        const params = [idIndicador];
+
+        if (idPeriodo) {
+            sql += ' AND r.id_periodo = ?';
+            params.push(idPeriodo);
+        }
+
+        sql += ' ORDER BY p.anio DESC, p.numero DESC, m.nombre ASC';
+
+        const [rows] = await pool.query(sql, params);
         return rows;
     }
     static async createBatch(records) {

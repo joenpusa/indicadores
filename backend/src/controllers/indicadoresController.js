@@ -378,8 +378,7 @@ class IndicadoresController {
     static async obtenerDatos(req, res) {
         try {
             const { id } = req.params; // id_indicador
-            const { id_periodo } = req.query; // Filter by period usually needed for dashboards
-            if (!id_periodo) return res.status(400).json({ error: true, message: 'ID periodo requerido' });
+            const { id_periodo } = req.query; // Filter by period optional now
 
             const registros = await RegistrosModel.getRegistros(id, id_periodo);
             res.json(registros);

@@ -27,6 +27,12 @@ class ValoresDAO {
         const [rows] = await pool.query('SELECT * FROM indicador_valores WHERE id_registro = ?', [idRegistro]);
         return rows;
     }
+
+    static async getByRegistros(idsRegistros) {
+        if (!idsRegistros || idsRegistros.length === 0) return [];
+        const [rows] = await pool.query('SELECT * FROM indicador_valores WHERE id_registro IN (?)', [idsRegistros]);
+        return rows;
+    }
 }
 
 module.exports = ValoresDAO;

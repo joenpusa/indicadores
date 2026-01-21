@@ -16,6 +16,7 @@ import IndicadoresPage from './modules/indicadores/IndicadoresPage';
 import VariablesPage from './modules/indicadores/VariablesPage';
 import VisualizacionPage from './modules/indicadores/VisualizacionPage';
 import CargaDatosPage from './modules/indicadores/CargaDatosPage';
+import IndicadorDataPage from './modules/indicadores/IndicadorDataPage';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
                   <Route path="indicadores/:id/variables" element={<VariablesPage />} />
                   <Route path="indicadores/:id/visualizacion" element={<VisualizacionPage />} />
                   <Route path="indicadores/:id/carga" element={<CargaDatosPage />} />
+                  <Route path="indicadores/:id/data" element={<IndicadorDataPage />} />
                   <Route path="settings/secretarias" element={<SecretariasPage />} />
                   <Route path="settings/municipios" element={<MunicipiosPage />} />
                   <Route path="roles" element={<RolesPage />} />

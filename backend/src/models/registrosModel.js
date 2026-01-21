@@ -10,8 +10,28 @@ class RegistrosModel {
 
     static async getRegistros(idIndicador, idPeriodo) {
         if (!idIndicador) throw new Error('ID de indicador requerido');
-        if (!idPeriodo) throw new Error('ID de periodo requerido');
-        return await RegistrosDAO.getByIndicadorAndPeriodo(idIndicador, idPeriodo);
+
+        // 1. Get Records
+        const registros = await RegistrosDAO.getByIndicadorAndPeriodo(idIndicador, idPeriodo);
+        if (registros.length === 0) return [];
+
+        // 2. Get Values
+        const ids = registros.map(r => r.id_registro);
+        const ValoresDAO = require('../daos/valoresDao'); // Lazy load avoids circular dep if any
+        const allValues = await ValoresDAO.getByRegistros(ids);
+
+        // 3. Map values to records
+        // output: [{ ...registro, valores: { [id_variable]: valor } }]
+        const regsWithValues = registros.map(reg => {
+            const regVals = allValues.filter(v => v.id_registro === reg.id_registro);
+            const valoresObj = {};
+            regVals.forEach(v => {
+                valoresObj[v.id_variable] = v.valor;
+            });
+            return { ...reg, valores: valoresObj };
+        });
+
+        return regsWithValues;
     }
 }
 
