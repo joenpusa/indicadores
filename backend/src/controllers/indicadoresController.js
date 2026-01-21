@@ -69,33 +69,39 @@ class IndicadoresController {
     }
 
     static async procesarManual(req, res, idIndicador) {
-        const { id_municipio, id_periodo, descripcion, valores } = req.body;
+        const { id_municipio, anio, numero, descripcion, valores } = req.body;
         // valores: { id_variable: value, ... } or array of { id_variable, valor }
 
-        if (!id_municipio || !id_periodo) {
-            return res.status(400).json({ message: 'Municipio y Periodo son obligatorios' });
+        if (!id_municipio || !anio) {
+            return res.status(400).json({ message: 'Municipio y Año son obligatorios' });
         }
 
         try {
             // Validation: Allowed Periodicity
             const indicador = await IndicadoresModel.getIndicadorById(idIndicador);
-            const periodo = await PeriodosModel.getById(id_periodo);
 
-            if (!indicador || !periodo) {
-                return res.status(404).json({ message: 'Indicador o Periodo no encontrado' });
+            if (!indicador) {
+                return res.status(404).json({ message: 'Indicador no encontrado' });
             }
 
-            const tiposPermitidos = indicador.periodicidad ? [indicador.periodicidad] : []; // Now a single string
-            if (!tiposPermitidos.includes(periodo.tipo.toLowerCase())) {
-                return res.status(400).json({
-                    message: `El periodo seleccionado (${periodo.tipo}) no corresponde a la periodicidad del indicador (${indicador.periodicidad})`
-                });
+            // Period validation handled by findOrCreate logic potentially, but we should check if logic matches indicator type.
+            // Actually, findOrCreate creates ANY period type requested.
+            // We should ensure we are creating the RIGHT type for this indicator.
+            const tipo = indicador.periodicidad;
+            if (!tipo) return res.status(400).json({ message: 'Indicador sin periodicidad definida' });
+
+            // Sub-period validation
+            if (tipo !== 'anual' && !numero) {
+                return res.status(400).json({ message: `Para periodicidad ${tipo} se requiere especificar el periodo (número)` });
             }
+
+            // Find or Create Period
+            const idPeriodo = await PeriodosModel.findOrCreate(tipo, anio, numero);
 
             const idRegistro = await RegistrosDAO.create({
                 id_indicador: idIndicador,
                 id_municipio,
-                id_periodo,
+                id_periodo: idPeriodo,
                 descripcion
             });
 

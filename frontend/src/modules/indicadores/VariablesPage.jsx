@@ -132,6 +132,7 @@ const VariablesPage = () => {
                             <strong>Las variables definen qué se mide en este indicador.</strong>
                         </div>
                         <ul className="mb-0 small">
+                            <li>La variables basicas para todo indicador son municipio y periodo.</li>
                             <li>Puedes crear variables numéricas, de texto o de fecha.</li>
                             <li>Debes crear al menos una variable numérica para poder generar gráficos o mapas.</li>
                         </ul>
@@ -217,7 +218,7 @@ const VariablesPage = () => {
                                             />
                                         </FloatingLabel>
                                         <Form.Text className="text-muted">
-                                            Nombre corto y claro que represente lo que se mide. Ej: Hectáreas sembradas.
+                                            Nombre corto y claro sin espacios, es la referencia del archivo de carga. Ej: hectareas, tipo_alimento.
                                         </Form.Text>
                                     </div>
 
@@ -230,8 +231,8 @@ const VariablesPage = () => {
                                                 >
                                                     <option value="numero">Número</option>
                                                     <option value="texto">Texto</option>
-                                                    <option value="fecha">Fecha</option>
-                                                    <option value="booleano">Booleano</option>
+                                                    <option value="fecha">Fecha (Cuando requiere especifica)</option>
+                                                    <option value="booleano">Booleano (Si/No)</option>
                                                 </Form.Select>
                                             </FloatingLabel>
                                         </OverlayTrigger>

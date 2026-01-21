@@ -20,16 +20,12 @@ const CargaDatosPage = () => {
     // Manual Entry State
     const [formData, setFormData] = useState({
         id_municipio: '',
-        id_periodo: '',
+        anio: new Date().getFullYear(),
+        numero: '',
         descripcion: '',
         valores: {}
     });
     const [selectedMunicipio, setSelectedMunicipio] = useState(null);
-
-    // Cascade Selection State
-    const [selectedType, setSelectedType] = useState('');
-    const [selectedYear, setSelectedYear] = useState('');
-    const [selectedSubPeriod, setSelectedSubPeriod] = useState('');
 
     // Bulk Upload State
     const [file, setFile] = useState(null);
@@ -62,37 +58,36 @@ const CargaDatosPage = () => {
         }
     };
 
-    // Filter Logic
-    const availableTypes = indicador?.periodicidad ? [indicador.periodicidad] : [];
-
-    // Derived Options based on Type
-    const availableYears = [...new Set(periodos
-        .filter(p => !selectedType || p.tipo.toLowerCase() === selectedType.toLowerCase())
-        .map(p => p.anio)
-    )].sort((a, b) => b - a);
-
-    const availableSubPeriods = periodos.filter(p =>
-        p.tipo.toLowerCase() === selectedType.toLowerCase() &&
-        p.anio == selectedYear
-    );
-
-    useEffect(() => {
-        // Reset downstream selections when upstream changes
-        setSelectedYear('');
-        setSelectedSubPeriod('');
-        setFormData(p => ({ ...p, id_periodo: '' }));
-    }, [selectedType]);
-
-    useEffect(() => {
-        setSelectedSubPeriod('');
-        setFormData(p => ({ ...p, id_periodo: '' }));
-    }, [selectedYear]);
-
-    useEffect(() => {
-        if (selectedSubPeriod) {
-            setFormData(p => ({ ...p, id_periodo: selectedSubPeriod }));
-        }
-    }, [selectedSubPeriod]);
+    // Helper for period options
+    const getPeriodOptions = () => {
+        const tipo = indicador?.periodicidad;
+        if (!tipo) return [];
+        if (tipo === 'semestral') return [
+            { value: 1, label: '01 - Primer Semestre' },
+            { value: 2, label: '02 - Segundo Semestre' }
+        ];
+        if (tipo === 'trimestral') return [
+            { value: 1, label: 'T1 - Trimestre 1' },
+            { value: 2, label: 'T2 - Trimestre 2' },
+            { value: 3, label: 'T3 - Trimestre 3' },
+            { value: 4, label: 'T4 - Trimestre 4' }
+        ];
+        if (tipo === 'mensual') return [
+            { value: 1, label: 'Enero' },
+            { value: 2, label: 'Febrero' },
+            { value: 3, label: 'Marzo' },
+            { value: 4, label: 'Abril' },
+            { value: 5, label: 'Mayo' },
+            { value: 6, label: 'Junio' },
+            { value: 7, label: 'Julio' },
+            { value: 8, label: 'Agosto' },
+            { value: 9, label: 'Septiembre' },
+            { value: 10, label: 'Octubre' },
+            { value: 11, label: 'Noviembre' },
+            { value: 12, label: 'Diciembre' },
+        ];
+        return [];
+    };
 
 
     const handleManualSubmit = async (e) => {
@@ -100,15 +95,23 @@ const CargaDatosPage = () => {
         setSubmitting(true);
         setAlert(null);
 
-        if (!formData.id_municipio || !formData.id_periodo) {
-            setAlert({ type: 'warning', text: 'Municipio y Periodo son obligatorios.' });
+        if (!formData.id_municipio || !formData.anio) {
+            setAlert({ type: 'warning', text: 'Municipio y Año son obligatorios.' });
+            setSubmitting(false);
+            return;
+        }
+
+        // Validate number if not annual
+        if (indicador.periodicidad !== 'anual' && !formData.numero) {
+            setAlert({ type: 'warning', text: 'Debe seleccionar el periodo específico.' });
             setSubmitting(false);
             return;
         }
 
         const payload = {
             id_municipio: formData.id_municipio,
-            id_periodo: formData.id_periodo,
+            anio: formData.anio,
+            numero: formData.numero,
             descripcion: formData.descripcion,
             valores: Object.entries(formData.valores).map(([idVar, val]) => ({
                 id_variable: idVar,
@@ -213,53 +216,36 @@ const CargaDatosPage = () => {
                                                 />
                                             </Col>
                                         </Row>
-                                        <h5 className="mb-3 text-secondary border-bottom pb-2">Selección de Periodo</h5>
+                                        <h5 className="mb-3 text-secondary border-bottom pb-2">Definición de Periodo - {indicador.periodicidad?.toUpperCase()}</h5>
                                         <Row>
-                                            {availableTypes.length > 1 && (
-                                                <Col md={4} className="mb-3">
-                                                    <FloatingLabel controlId="selectType" label="Tipo Periodo">
+                                            <Col md={6} className="mb-3">
+                                                <FloatingLabel controlId="inputAnio" label="Año (AAAA)">
+                                                    <Form.Control
+                                                        type="number"
+                                                        placeholder="2024"
+                                                        value={formData.anio}
+                                                        onChange={e => setFormData(p => ({ ...p, anio: e.target.value }))}
+                                                        required
+                                                    />
+                                                </FloatingLabel>
+                                            </Col>
+
+                                            {indicador.periodicidad !== 'anual' && (
+                                                <Col md={6} className="mb-3">
+                                                    <FloatingLabel controlId="selectPeriodo" label="Periodo Específico">
                                                         <Form.Select
-                                                            value={selectedType}
-                                                            onChange={e => setSelectedType(e.target.value)}
+                                                            value={formData.numero}
+                                                            onChange={e => setFormData(p => ({ ...p, numero: e.target.value }))}
+                                                            required
                                                         >
                                                             <option value="">Seleccione...</option>
-                                                            {availableTypes.map(t => (
-                                                                <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+                                                            {getPeriodOptions().map(opt => (
+                                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
                                                             ))}
                                                         </Form.Select>
                                                     </FloatingLabel>
                                                 </Col>
                                             )}
-
-                                            <Col md={4} className="mb-3">
-                                                <FloatingLabel controlId="selectYear" label="Año">
-                                                    <Form.Select
-                                                        value={selectedYear}
-                                                        onChange={e => setSelectedYear(e.target.value)}
-                                                        disabled={!selectedType}
-                                                    >
-                                                        <option value="">Seleccione...</option>
-                                                        {availableYears.map(y => (
-                                                            <option key={y} value={y}>{y}</option>
-                                                        ))}
-                                                    </Form.Select>
-                                                </FloatingLabel>
-                                            </Col>
-
-                                            <Col md={4} className="mb-3">
-                                                <FloatingLabel controlId="selectSub" label="Periodo">
-                                                    <Form.Select
-                                                        value={selectedSubPeriod}
-                                                        onChange={e => setSelectedSubPeriod(e.target.value)}
-                                                        disabled={!selectedYear}
-                                                    >
-                                                        <option value="">Seleccione...</option>
-                                                        {availableSubPeriods.map(p => (
-                                                            <option key={p.id_periodo} value={p.id_periodo}>{p.nombre}</option>
-                                                        ))}
-                                                    </Form.Select>
-                                                </FloatingLabel>
-                                            </Col>
                                         </Row>
 
                                         <FloatingLabel controlId="floatingDesc" label="Descripción (opcional)" className="mb-4">
