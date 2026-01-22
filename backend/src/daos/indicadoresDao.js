@@ -116,6 +116,98 @@ class IndicadoresDAO {
         await pool.query('DELETE FROM indicadores WHERE id_indicador = ?', [id]);
         return true;
     }
+
+    static async getDashboardData(idIndicador, filters) {
+        const { id_periodo, active } = filters;
+
+        // 1. Get Map Data (Heatmap) - Sum of all numeric variables per municipality
+        let mapSql = `
+            SELECT 
+                m.id_municipio, 
+                m.codigo_municipio,
+                m.nombre as nombre_municipio, 
+                COALESCE(SUM(v.valor), 0) as total
+            FROM indicador_registros r
+            JOIN municipios m ON r.id_municipio = m.id_municipio
+            JOIN indicador_valores v ON r.id_registro = v.id_registro
+            JOIN indicador_variables var ON v.id_variable = var.id_variable
+            WHERE r.id_indicador = ? 
+            AND var.tipo = 'numero'
+        `;
+
+        const mapParams = [idIndicador];
+
+        if (id_periodo) {
+            mapSql += ' AND r.id_periodo = ?';
+            mapParams.push(id_periodo);
+        }
+
+        if (filters.id_municipio) {
+            mapSql += ' AND m.codigo_municipio = ?';
+            mapParams.push(filters.id_municipio);
+        }
+
+        // Add filter for active indicator if needed, but normally we are viewing a specific indicator.
+        // If "active" param refers to the indicator status, it's already checked in controller/model 
+        // before calling this (or irrelevant if we already have the ID).
+
+        mapSql += ' GROUP BY m.id_municipio, m.codigo_municipio, m.nombre';
+
+        const [mapRows] = await pool.query(mapSql, mapParams);
+
+        // 2. Get Dimensions (Only Text type)
+        const [dimensions] = await pool.query(
+            'SELECT * FROM indicador_variables WHERE id_indicador = ? AND es_dimension = 1 AND tipo = "texto" ORDER BY orden ASC',
+            [idIndicador]
+        );
+
+        // 3. Get Chart Data for each dimension
+        const charts = [];
+        for (const dim of dimensions) {
+            let chartSql = `
+                SELECT 
+                    CONCAT(m.nombre, ' - ', v_dim.valor, ' - ', p.anio) as name,
+                    SUM(v_num.valor) as value,
+                    var_num.unidad as unit
+                FROM indicador_registros r
+                JOIN municipios m ON r.id_municipio = m.id_municipio
+                JOIN periodos p ON r.id_periodo = p.id_periodo
+                JOIN indicador_valores v_dim ON r.id_registro = v_dim.id_registro
+                JOIN indicador_valores v_num ON r.id_registro = v_num.id_registro
+                JOIN indicador_variables var_num ON v_num.id_variable = var_num.id_variable
+                WHERE r.id_indicador = ?
+                AND v_dim.id_variable = ?
+                AND var_num.tipo = 'numero'
+            `;
+
+            const chartParams = [idIndicador, dim.id_variable];
+
+            if (id_periodo) {
+                chartSql += ' AND r.id_periodo = ?';
+                chartParams.push(id_periodo);
+            }
+
+            if (filters.id_municipio) {
+                chartSql += ' AND m.codigo_municipio = ?';
+                chartParams.push(filters.id_municipio);
+            }
+
+            chartSql += ' GROUP BY m.nombre, v_dim.valor, p.anio, var_num.unidad ORDER BY p.anio DESC, m.nombre ASC';
+
+            const [chartRows] = await pool.query(chartSql, chartParams);
+
+            charts.push({
+                dimensionId: dim.id_variable,
+                dimensionName: dim.nombre,
+                data: chartRows
+            });
+        }
+
+        return {
+            mapData: mapRows,
+            charts: charts
+        };
+    }
 }
 
 module.exports = IndicadoresDAO;

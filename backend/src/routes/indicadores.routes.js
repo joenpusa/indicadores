@@ -31,6 +31,7 @@ router.get('/:id/plantilla', IndicadoresController.descargarPlantilla);
 router.post('/:id/carga', upload.single('archivo'), IndicadoresController.cargarDatos);
 router.get('/:id/registros', IndicadoresController.obtenerDatos);
 router.delete('/:id/registros/:idRegistro', IndicadoresController.eliminarRegistro);
+router.get('/:id/dashboard', IndicadoresController.obtenerDatosDashboard);
 
 // Periodos (Helper for frontend dropdowns)
 router.get('/periodos/all', IndicadoresController.listarPeriodos);

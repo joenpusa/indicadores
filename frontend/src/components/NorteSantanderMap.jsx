@@ -26,7 +26,7 @@ const MapUpdater = ({ center, zoom, bounds }) => {
     return null;
 };
 
-const NorteSantanderMap = () => {
+const NorteSantanderMap = ({ mapData = null, title = "Mapa de Norte de Santander", onFilterApplied }) => {
     // We remove the internal 'municipios' state because the TableMunicipios handles fetching now.
     // If we need data for other things (like stats), we might re-add it differently.
 
@@ -34,6 +34,26 @@ const NorteSantanderMap = () => {
     const [geoJsonData, setGeoJsonData] = useState(null);
     const [selectedMunicipio, setSelectedMunicipio] = useState(null); // Active Map State
     const [selectedIndicador, setSelectedIndicador] = useState(null); // Active Map State
+
+    // Calculate max value for heatmap scale
+    const maxValue = React.useMemo(() => {
+        if (!mapData) return 0;
+        return Math.max(...Object.values(mapData));
+    }, [mapData]);
+
+    const getHeatmapColor = (value) => {
+        if (!value) return '#FFEDA0'; // Base color (no data)
+        const ratio = value / maxValue;
+        // Simple interpolation from Light Yellow to Red
+        // #FFEDA0 to #BD0026
+        // Use discrete buckets for better visualization
+        if (ratio > 0.8) return '#800026';
+        if (ratio > 0.6) return '#BD0026';
+        if (ratio > 0.4) return '#E31A1C';
+        if (ratio > 0.2) return '#FC4E2A';
+        if (ratio > 0) return '#FD8D3C';
+        return '#FFEDA0';
+    };
 
     // Pending Form State
     const [pendingMunicipio, setPendingMunicipio] = useState(null);
@@ -99,14 +119,26 @@ const NorteSantanderMap = () => {
         // Ensure comparison is safe string-to-string
         const isSelected = String(selectedMunicipio) === String(feature.properties.id);
         const isHovered = String(hoveredMunicipio) === String(feature.properties.id);
-        // User's preferred colors
+
+        let fillColor = '#4056A1'; // Default blueish (no data/mapData null)
+
+        if (mapData && !isSelected && !isHovered) {
+            // mapData keys assumed to be codigo_municipio (id)
+            const val = mapData[String(feature.properties.id)];
+            fillColor = getHeatmapColor(val);
+        }
+
+        // Priority override
+        if (isSelected) fillColor = '#F13C20';
+        else if (isHovered) fillColor = '#D79922';
+
         return {
-            fillColor: isSelected ? '#F13C20' : (isHovered ? '#D79922' : '#4056A1'), // State-driven styles prevent flicker conflicts
+            fillColor: fillColor,
             weight: isHovered || isSelected ? 3 : 1,
             opacity: 1,
             color: isHovered ? '#666' : 'white',
             dashArray: '3',
-            fillOpacity: isSelected ? 0.8 : (isHovered ? 0.7 : 0.5)
+            fillOpacity: 0.8
         };
     };
 
@@ -149,6 +181,13 @@ const NorteSantanderMap = () => {
         handleSelectMunicipio(pendingMunicipio);
         // Confirm Indicador
         setSelectedIndicador(pendingIndicador);
+
+        if (onFilterApplied) {
+            onFilterApplied({
+                municipioId: pendingMunicipio,
+                indicador: pendingIndicador
+            });
+        }
     };
 
     const handleClearFilters = () => {
@@ -157,6 +196,13 @@ const NorteSantanderMap = () => {
         setPendingIndicador(null);
         setSelectedIndicador(null);
         handleSelectMunicipio("todos"); // Resets map bounds and active municipio
+
+        if (onFilterApplied) {
+            onFilterApplied({
+                municipioId: null,
+                indicador: null
+            });
+        }
     };
 
     const getPendingMunicipioObj = () => {
@@ -237,6 +283,20 @@ const NorteSantanderMap = () => {
                                     </Button>
                                 </div>
                             )}
+
+                            {/* Legend */}
+                            {mapData && (
+                                <div className="mt-3">
+                                    <h6 className="text-muted small fw-bold mb-2">Escala de Valores</h6>
+                                    <div className="d-flex align-items-center justify-content-between small">
+                                        <div className="d-flex align-items-center"><span className="d-inline-block me-1" style={{ width: 12, height: 12, background: '#FFEDA0' }}></span> 0</div>
+                                        <div className="d-flex align-items-center"><span className="d-inline-block me-1" style={{ width: 12, height: 12, background: '#FD8D3C' }}></span> Baja</div>
+                                        <div className="d-flex align-items-center"><span className="d-inline-block me-1" style={{ width: 12, height: 12, background: '#E31A1C' }}></span> Media</div>
+                                        <div className="d-flex align-items-center"><span className="d-inline-block me-1" style={{ width: 12, height: 12, background: '#800026' }}></span> Alta</div>
+                                    </div>
+                                </div>
+                            )}
+
                         </Card.Body>
                     </Card>
                 </Col>

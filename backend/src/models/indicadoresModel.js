@@ -27,6 +27,11 @@ class IndicadoresModel {
         if (!id) throw new Error('ID es requerido');
         return await IndicadoresDAO.delete(id);
     }
+
+    static async getDashboardData(idIndicador, filters) {
+        if (!idIndicador) throw new Error('ID de indicador es requerido');
+        return await IndicadoresDAO.getDashboardData(idIndicador, filters);
+    }
 }
 
 module.exports = IndicadoresModel;

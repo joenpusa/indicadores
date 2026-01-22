@@ -1,11 +1,41 @@
-import React from 'react';
-import { Navbar, Container, Nav, Carousel, Card, Row, Col, Button } from 'react-bootstrap';
+import DashboardCharts from '@/components/DashboardCharts';
+import indicadoresService from '@/services/indicadoresService';
+import React, { useState } from 'react';
+import { Button, Card, Carousel, Col, Container, Nav, Navbar, ProgressBar, Row, Spinner } from 'react-bootstrap';
+import { FaBuilding, FaChartBar, FaCity, FaFacebook, FaInstagram, FaMapMarkedAlt, FaTwitter, FaUsers, FaYoutube } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import { FaChartBar, FaMapMarkedAlt, FaCity, FaBuilding, FaUsers, FaInstagram, FaFacebook, FaTwitter, FaYoutube } from 'react-icons/fa';
-import { ProgressBar } from 'react-bootstrap';
 import NorteSantanderMap from '@/components/NorteSantanderMap';
 
 const LandingPage = () => {
+    const [dashboardData, setDashboardData] = useState(null);
+    const [loadingDashboard, setLoadingDashboard] = useState(false);
+    const [activeIndicador, setActiveIndicador] = useState(null);
+
+    const handleFilterApplied = async ({ municipioId, indicador }) => {
+        if (indicador) {
+            setLoadingDashboard(true);
+            setActiveIndicador(indicador);
+            try {
+                // If specific period filtering is added later, pass it here
+                // For now, fetching total aggregated data or default
+                const params = { active: 1 };
+                if (municipioId && municipioId !== "todos") {
+                    params.id_municipio = municipioId;
+                }
+                const data = await indicadoresService.getDashboardData(indicador.id_indicador, params);
+                setDashboardData(data);
+            } catch (error) {
+                console.error("Error loading dashboard data:", error);
+                setDashboardData(null);
+            } finally {
+                setLoadingDashboard(false);
+            }
+        } else {
+            setDashboardData(null);
+            setActiveIndicador(null);
+        }
+    };
+
     return (
         <div className="d-flex flex-column min-vh-100">
             {/* Custom Styles for Hover Effects */}
@@ -61,7 +91,32 @@ const LandingPage = () => {
             </Carousel>
 
             {/* Map Section */}
-            <NorteSantanderMap />
+            <NorteSantanderMap
+                mapData={dashboardData?.mapData}
+                onFilterApplied={handleFilterApplied}
+            />
+
+            {/* Dashboard Charts Section */}
+            <Container className="mb-5">
+                {loadingDashboard ? (
+                    <div className="text-center p-5">
+                        <Spinner animation="border" variant="primary" role="status">
+                            <span className="visually-hidden">Cargando...</span>
+                        </Spinner>
+                        <p className="mt-2 text-muted">Cargando datos del indicador...</p>
+                    </div>
+                ) : (
+                    activeIndicador && (
+                        dashboardData ? (
+                            <DashboardCharts charts={dashboardData.charts} />
+                        ) : (
+                            <div className="text-center text-muted p-4 bg-light rounded">
+                                <p>No hay datos disponibles para la visualización de este indicador.</p>
+                            </div>
+                        )
+                    )
+                )}
+            </Container>
 
             {/* Cards Section */}
             <Container className="my-5 flex-grow-1">

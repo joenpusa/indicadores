@@ -93,6 +93,11 @@ const createRegistro = async (id, data) => {
     return uploadData(id, data, false);
 };
 
+const getDashboardData = async (id, params = {}) => {
+    const response = await api.get(`/indicadores/${id}/dashboard`, { params });
+    return response.data;
+};
+
 const indicadoresService = {
     getAll,
     getById,
@@ -111,7 +116,8 @@ const indicadoresService = {
     uploadData,
     createRegistro,
     getRegistros,
-    deleteRegistro
+    deleteRegistro,
+    getDashboardData
 };
 
 export default indicadoresService;
