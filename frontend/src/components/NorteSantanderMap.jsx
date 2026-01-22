@@ -6,6 +6,7 @@ import L, { CRS } from 'leaflet'; // Import CRS
 import norteSantanderGeoJSON from '@/data/norte_santander.json';
 import municipiosService from '@/services/municipiosService';
 import TableMunicipios from '@/modules/settings/municipios/TableMunicipios';
+import TableIndicadores from '@/modules/settings/indicadores/TableIndicadores';
 
 // Fix for default Leaflet icon issues in React (keeping this as it's a common Leaflet issue)
 // ...
@@ -31,7 +32,12 @@ const NorteSantanderMap = () => {
 
     // const [municipios, setMunicipios] = useState([]); // REMOVED
     const [geoJsonData, setGeoJsonData] = useState(null);
-    const [selectedMunicipio, setSelectedMunicipio] = useState(null);
+    const [selectedMunicipio, setSelectedMunicipio] = useState(null); // Active Map State
+    const [selectedIndicador, setSelectedIndicador] = useState(null); // Active Map State
+
+    // Pending Form State
+    const [pendingMunicipio, setPendingMunicipio] = useState(null);
+    const [pendingIndicador, setPendingIndicador] = useState(null);
     const [hoveredMunicipio, setHoveredMunicipio] = useState(null);
     const [loading, setLoading] = useState(true);
     const [mapBounds, setMapBounds] = useState(null);
@@ -65,6 +71,7 @@ const NorteSantanderMap = () => {
 
         // Use the value as the ID since that's what we pass around
         setSelectedMunicipio(String(value));
+        setPendingMunicipio(String(value)); // Sync pending state
 
         // Find feature to zoom
         const feature = geoJsonData?.features.find(f =>
@@ -130,11 +137,36 @@ const NorteSantanderMap = () => {
 
     const onTableChange = (municipio) => {
         if (municipio) {
-            // Prefer codigo_municipio if available (from API), otherwise fallback to id (if from simplistic object)
-            handleSelectMunicipio(municipio.codigo_municipio || municipio.id);
+            // Only update pending state
+            setPendingMunicipio(municipio.codigo_municipio || municipio.id);
         } else {
-            handleSelectMunicipio("todos");
+            setPendingMunicipio("todos");
         }
+    };
+
+    const handleApplyFilters = () => {
+        // Confirm Municipio
+        handleSelectMunicipio(pendingMunicipio);
+        // Confirm Indicador
+        setSelectedIndicador(pendingIndicador);
+    };
+
+    const handleClearFilters = () => {
+        // Reset all states
+        setPendingMunicipio(null);
+        setPendingIndicador(null);
+        setSelectedIndicador(null);
+        handleSelectMunicipio("todos"); // Resets map bounds and active municipio
+    };
+
+    const getPendingMunicipioObj = () => {
+        if (!pendingMunicipio || pendingMunicipio === 'todos') return null;
+        const feature = geoJsonData?.features.find(f => String(f.properties.id) === String(pendingMunicipio));
+        return feature ? {
+            id: pendingMunicipio,
+            codigo_municipio: pendingMunicipio,
+            nombre: feature.properties.name
+        } : null;
     };
 
     if (loading) {
@@ -153,32 +185,55 @@ const NorteSantanderMap = () => {
                 <Col md={4} className="mb-4 mb-md-0">
                     <Card className="h-100 shadow-sm">
                         <Card.Body>
-                            <Card.Title>Filtrar por Municipio</Card.Title>
-                            <Form.Group className="mb-3">
-                                <TableMunicipios
-                                    selectedMunicipio={
-                                        selectedMunicipio ? {
-                                            id: selectedMunicipio,
-                                            codigo_municipio: selectedMunicipio, // Ensure display component finds this
-                                            nombre: geoJsonData?.features.find(f => String(f.properties.id) === String(selectedMunicipio))?.properties.name
-                                        } : null
-                                    }
-                                    onMunicipioChange={onTableChange}
-                                />
+                            <Card.Title>Filtros</Card.Title>
+                            <Form.Group className="row mb-3 gy-2">
+                                <Col xs={12}>
+                                    <TableMunicipios
+                                        selectedMunicipio={getPendingMunicipioObj()}
+                                        onMunicipioChange={onTableChange}
+                                    />
+                                </Col>
+                                <Col xs={12}>
+                                    <TableIndicadores
+                                        selectedIndicador={pendingIndicador}
+                                        onIndicadorChange={setPendingIndicador}
+                                        onlyActive={true}
+                                    />
+                                </Col>
+                                <Col xs={12}>
+                                    <Button
+                                        variant="primary"
+                                        className="w-100"
+                                        onClick={handleApplyFilters}
+                                    >
+                                        Aplicar Filtros
+                                    </Button>
+                                </Col>
                             </Form.Group>
 
-                            {selectedMunicipio && (
-                                <div className="mt-2 mb-3">
-                                    <Alert variant="info" className="py-2">
-                                        Seleccionaron el municipio: <strong>{getSelectedName()}</strong>
-                                    </Alert>
+                            {/* Summary Section */}
+                            {(selectedMunicipio || selectedIndicador) && (
+                                <div className="mt-3 mb-3">
+                                    <h6 className="text-muted small text-uppercase fw-bold mb-2">Filtros Activos:</h6>
+                                    <div className="d-flex flex-column gap-1">
+                                        {selectedMunicipio && (
+                                            <Alert variant="info" className="py-2 mb-0 small">
+                                                Municipio: <strong>{getSelectedName()}</strong>
+                                            </Alert>
+                                        )}
+                                        {selectedIndicador && (
+                                            <Alert variant="success" className="py-2 mb-0 small">
+                                                Indicador: <strong>{selectedIndicador.nombre}</strong>
+                                            </Alert>
+                                        )}
+                                    </div>
                                 </div>
                             )}
 
                             {selectedMunicipio && (
                                 <div className="mt-4">
-                                    <Button variant="outline-primary" onClick={() => handleSelectMunicipio("todos")} size="sm">
-                                        Ver Todos
+                                    <Button variant="outline-primary" onClick={handleClearFilters} size="sm">
+                                        Limpiar filtros
                                     </Button>
                                 </div>
                             )}

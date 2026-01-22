@@ -8,7 +8,7 @@ const TableIndicadores = ({ selectedIndicador, onIndicadorChange, onlyActive = f
         try {
             const params = { q: term, limit: 20 };
             if (onlyActive) {
-                params.es_activo = 1;
+                params.active = 1;
             }
             const response = await indicadoresService.getAll(params);
             return Array.isArray(response) ? response : (response.data || []);
