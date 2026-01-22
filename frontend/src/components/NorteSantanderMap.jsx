@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import L, { CRS } from 'leaflet'; // Import CRS
 import norteSantanderGeoJSON from '@/data/norte_santander.json';
 import municipiosService from '@/services/municipiosService';
+import indicadoresService from '@/services/indicadoresService';
 import TableMunicipios from '@/modules/settings/municipios/TableMunicipios';
 import TableIndicadores from '@/modules/settings/indicadores/TableIndicadores';
 
@@ -70,6 +71,18 @@ const NorteSantanderMap = ({ mapData = null, title = "Mapa de Norte de Santander
         setLoading(false);
     }, []);
 
+    // State for additional filters
+    const [pendingPeriodo, setPendingPeriodo] = useState('');
+    const [pendingVariable, setPendingVariable] = useState('');
+
+    // Available options
+    const [availablePeriodos, setAvailablePeriodos] = useState([]);
+    const [availableVariables, setAvailableVariables] = useState([]);
+
+    // Actual Active Filters (for Summary)
+    const [selectedPeriodoObj, setSelectedPeriodoObj] = useState(null);
+    const [selectedVariableObj, setSelectedVariableObj] = useState(null);
+
     // Effect to set initial bounds once GeoJSON is loaded
     useEffect(() => {
         if (geoJsonData) {
@@ -77,6 +90,34 @@ const NorteSantanderMap = ({ mapData = null, title = "Mapa de Norte de Santander
             setMapBounds(layer.getBounds());
         }
     }, [geoJsonData]);
+
+    // Fetch periods and variables when pendingIndicador changes
+    useEffect(() => {
+        const fetchFilters = async () => {
+            if (!pendingIndicador) {
+                setAvailablePeriodos([]);
+                setAvailableVariables([]);
+                setPendingPeriodo('');
+                setPendingVariable('');
+                return;
+            }
+
+            try {
+                // Fetch Periods
+                const periodos = await indicadoresService.getPeriodosByIndicador(pendingIndicador.id_indicador);
+                setAvailablePeriodos(periodos || []);
+
+                // Fetch Variables (only numeric for filtering)
+                const variables = await indicadoresService.getVariables(pendingIndicador.id_indicador);
+                const numericVars = variables.filter(v => v.tipo === 'numero');
+                setAvailableVariables(numericVars || []);
+            } catch (error) {
+                console.error("Error fetching filters:", error);
+            }
+        };
+
+        fetchFilters();
+    }, [pendingIndicador]);
 
     // Unified selection logic
     const handleSelectMunicipio = (value) => {
@@ -182,10 +223,20 @@ const NorteSantanderMap = ({ mapData = null, title = "Mapa de Norte de Santander
         // Confirm Indicador
         setSelectedIndicador(pendingIndicador);
 
+        // Update summary objects
+        const pObj = availablePeriodos.find(p => String(p.id_periodo) === String(pendingPeriodo));
+        setSelectedPeriodoObj(pObj || null);
+
+        const vObj = availableVariables.find(v => String(v.id_variable) === String(pendingVariable));
+        setSelectedVariableObj(vObj || null);
+
+
         if (onFilterApplied) {
             onFilterApplied({
                 municipioId: pendingMunicipio,
-                indicador: pendingIndicador
+                indicador: pendingIndicador,
+                id_periodo: pendingPeriodo || null,
+                id_variable: pendingVariable || null
             });
         }
     };
@@ -195,6 +246,11 @@ const NorteSantanderMap = ({ mapData = null, title = "Mapa de Norte de Santander
         setPendingMunicipio(null);
         setPendingIndicador(null);
         setSelectedIndicador(null);
+        setPendingPeriodo('');
+        setPendingVariable('');
+        setSelectedPeriodoObj(null);
+        setSelectedVariableObj(null);
+        // Note: availablePeriodos/Variables are reset by effect when pendingIndicador becomes null
         handleSelectMunicipio("todos"); // Resets map bounds and active municipio
 
         if (onFilterApplied) {
@@ -246,6 +302,44 @@ const NorteSantanderMap = ({ mapData = null, title = "Mapa de Norte de Santander
                                         onlyActive={true}
                                     />
                                 </Col>
+
+                                <Col xs={12}>
+                                    <div className="form-floating">
+                                        <Form.Select
+                                            id="periodoSelect"
+                                            value={pendingPeriodo}
+                                            onChange={(e) => setPendingPeriodo(e.target.value)}
+                                            disabled={!pendingIndicador || availablePeriodos.length === 0}
+                                        >
+                                            <option value="">Todos los periodos</option>
+                                            {availablePeriodos.map(p => (
+                                                <option key={p.id_periodo} value={p.id_periodo}>
+                                                    {p.anio} {p.numero ? `- Periodo ${p.numero}` : ''} ({p.tipo})
+                                                </option>
+                                            ))}
+                                        </Form.Select>
+                                        <label htmlFor="periodoSelect">Periodo</label>
+                                    </div>
+                                </Col>
+
+                                <Col xs={12}>
+                                    <div className="form-floating">
+                                        <Form.Select
+                                            id="variableSelect"
+                                            value={pendingVariable}
+                                            onChange={(e) => setPendingVariable(e.target.value)}
+                                            disabled={!pendingIndicador || availableVariables.length === 0}
+                                        >
+                                            <option value="">Todas las variables (numéricas)</option>
+                                            {availableVariables.map(v => (
+                                                <option key={v.id_variable} value={v.id_variable}>
+                                                    {v.nombre} ({v.unidad})
+                                                </option>
+                                            ))}
+                                        </Form.Select>
+                                        <label htmlFor="variableSelect">Variable Numérica</label>
+                                    </div>
+                                </Col>
                                 <Col xs={12}>
                                     <Button
                                         variant="primary"
@@ -270,6 +364,16 @@ const NorteSantanderMap = ({ mapData = null, title = "Mapa de Norte de Santander
                                         {selectedIndicador && (
                                             <Alert variant="success" className="py-2 mb-0 small">
                                                 Indicador: <strong>{selectedIndicador.nombre}</strong>
+                                            </Alert>
+                                        )}
+                                        {selectedPeriodoObj && (
+                                            <Alert variant="warning" className="py-2 mb-0 small">
+                                                Periodo: <strong>{selectedPeriodoObj.anio} {selectedPeriodoObj.numero ? `- ${selectedPeriodoObj.numero}` : ''}</strong>
+                                            </Alert>
+                                        )}
+                                        {selectedVariableObj && (
+                                            <Alert variant="secondary" className="py-2 mb-0 small">
+                                                Var: <strong>{selectedVariableObj.nombre}</strong>
                                             </Alert>
                                         )}
                                     </div>

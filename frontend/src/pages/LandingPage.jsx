@@ -11,10 +11,10 @@ const LandingPage = () => {
     const [loadingDashboard, setLoadingDashboard] = useState(false);
     const [activeIndicador, setActiveIndicador] = useState(null);
 
-    const handleFilterApplied = async ({ municipioId, indicador }) => {
+    const handleFilterApplied = async ({ municipioId, indicador, id_periodo, id_variable }) => {
+        setActiveIndicador(indicador);
         if (indicador) {
             setLoadingDashboard(true);
-            setActiveIndicador(indicador);
             try {
                 // If specific period filtering is added later, pass it here
                 // For now, fetching total aggregated data or default
@@ -22,6 +22,13 @@ const LandingPage = () => {
                 if (municipioId && municipioId !== "todos") {
                     params.id_municipio = municipioId;
                 }
+                if (id_periodo) {
+                    params.id_periodo = id_periodo;
+                }
+                if (id_variable) {
+                    params.id_variable = id_variable;
+                }
+
                 const data = await indicadoresService.getDashboardData(indicador.id_indicador, params);
                 setDashboardData(data);
             } catch (error) {

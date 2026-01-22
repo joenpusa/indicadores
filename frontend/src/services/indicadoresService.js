@@ -89,6 +89,11 @@ const getPeriodos = async () => {
     return response.data;
 };
 
+const getPeriodosByIndicador = async (id) => {
+    const response = await api.get(`/indicadores/${id}/periodos`);
+    return response.data;
+};
+
 const createRegistro = async (id, data) => {
     return uploadData(id, data, false);
 };
@@ -110,6 +115,7 @@ const indicadoresService = {
     getConfig,
     saveConfig,
     getPeriodos,
+    getPeriodosByIndicador,
     // Data Loading
     downloadTemplate,
     uploadData,

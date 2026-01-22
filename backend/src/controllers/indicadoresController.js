@@ -409,11 +409,21 @@ class IndicadoresController {
         }
     }
 
+    static async listarPeriodosIndicador(req, res) {
+        try {
+            const { id } = req.params;
+            const periodos = await RegistrosDAO.getAvailablePeriods(id);
+            res.json(periodos);
+        } catch (error) {
+            res.status(500).json({ error: true, message: error.message });
+        }
+    }
+
     // --- Dashboard ---
     static async obtenerDatosDashboard(req, res) {
         try {
             const { id } = req.params; // id_indicador
-            const { id_periodo, active, id_municipio } = req.query; // Filters
+            const { id_periodo, active, id_municipio, id_variable } = req.query; // Filters
 
             // 1. Validate Indicator
             const indicador = await IndicadoresModel.getIndicadorById(id);
@@ -422,7 +432,7 @@ class IndicadoresController {
             // 2. Register filters
             // We need a DAO method that supports aggregation.
             // For now, let's implement the logic here calling Model/DAO methods we'll creating.
-            const dashboardData = await IndicadoresModel.getDashboardData(id, { id_periodo, active, id_municipio });
+            const dashboardData = await IndicadoresModel.getDashboardData(id, { id_periodo, active, id_municipio, id_variable });
 
             res.json(dashboardData);
 

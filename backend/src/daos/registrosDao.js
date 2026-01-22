@@ -78,6 +78,18 @@ class RegistrosDAO {
         rows.forEach(r => map.set(String(r.codigo_municipio), r.id_municipio));
         return map;
     }
+
+    static async getAvailablePeriods(idIndicador) {
+        const sql = `
+            SELECT DISTINCT p.id_periodo, p.tipo, p.anio, p.numero
+            FROM indicador_registros r
+            JOIN periodos p ON r.id_periodo = p.id_periodo
+            WHERE r.id_indicador = ?
+            ORDER BY p.anio DESC, p.numero DESC
+        `;
+        const [rows] = await pool.query(sql, [idIndicador]);
+        return rows;
+    }
 }
 
 module.exports = RegistrosDAO;

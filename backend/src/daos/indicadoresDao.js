@@ -147,6 +147,11 @@ class IndicadoresDAO {
             mapParams.push(filters.id_municipio);
         }
 
+        if (filters.id_variable) {
+            mapSql += ' AND v.id_variable = ?';
+            mapParams.push(filters.id_variable);
+        }
+
         // Add filter for active indicator if needed, but normally we are viewing a specific indicator.
         // If "active" param refers to the indicator status, it's already checked in controller/model 
         // before calling this (or irrelevant if we already have the ID).
@@ -190,6 +195,11 @@ class IndicadoresDAO {
             if (filters.id_municipio) {
                 chartSql += ' AND m.codigo_municipio = ?';
                 chartParams.push(filters.id_municipio);
+            }
+
+            if (filters.id_variable) {
+                chartSql += ' AND v_num.id_variable = ?';
+                chartParams.push(filters.id_variable);
             }
 
             chartSql += ' GROUP BY m.nombre, v_dim.valor, p.anio, var_num.unidad ORDER BY p.anio DESC, m.nombre ASC';
