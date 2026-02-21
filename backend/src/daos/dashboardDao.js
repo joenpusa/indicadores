@@ -36,6 +36,24 @@ class DashboardDAO {
             throw error;
         }
     }
+    static async getPublicMetrics() {
+        try {
+            const [municipios] = await pool.query('SELECT COUNT(*) as total FROM municipios WHERE activo = 1');
+            const [secretarias] = await pool.query('SELECT COUNT(*) as total FROM secretarias WHERE es_activo = 1');
+            const [variables] = await pool.query('SELECT COUNT(*) as total FROM indicador_variables');
+            const [indicadores] = await pool.query('SELECT COUNT(*) as total FROM indicadores WHERE es_activo = 1');
+
+            return {
+                totalMunicipios: municipios[0].total,
+                totalSecretarias: secretarias[0].total,
+                totalVariables: variables[0].total,
+                totalIndicadores: indicadores[0].total
+            };
+        } catch (error) {
+            console.error('Error in DashboardDAO getPublicMetrics:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = DashboardDAO;

@@ -1,6 +1,7 @@
 import DashboardCharts from '@/components/DashboardCharts';
 import indicadoresService from '@/services/indicadoresService';
-import React, { useState } from 'react';
+import dashboardService from '@/services/dashboardService';
+import React, { useState, useEffect } from 'react';
 import { Button, Card, Carousel, Col, Container, Nav, Navbar, ProgressBar, Row, Spinner } from 'react-bootstrap';
 import { FaBuilding, FaChartBar, FaCity, FaFacebook, FaInstagram, FaMapMarkedAlt, FaTwitter, FaUsers, FaYoutube } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
@@ -10,6 +11,19 @@ const LandingPage = () => {
     const [dashboardData, setDashboardData] = useState(null);
     const [loadingDashboard, setLoadingDashboard] = useState(false);
     const [activeIndicador, setActiveIndicador] = useState(null);
+    const [publicMetrics, setPublicMetrics] = useState(null);
+
+    useEffect(() => {
+        const fetchMetrics = async () => {
+            try {
+                const data = await dashboardService.getPublicMetrics();
+                setPublicMetrics(data);
+            } catch (error) {
+                console.error("Error loading public metrics:", error);
+            }
+        };
+        fetchMetrics();
+    }, []);
 
     const handleFilterApplied = async ({ municipioId, indicador, id_periodo, id_variable }) => {
         setActiveIndicador(indicador);
@@ -152,29 +166,21 @@ const LandingPage = () => {
             {/* Cards Section */}
             <Container className="my-5 flex-grow-1">
                 <h2 className="text-center mb-4">Nuestros Indicadores</h2>
-                <Row xs={1} md={2} lg={3} xl={5} className="g-4">
+                <Row xs={1} md={2} lg={4} className="g-4 justify-content-center">
                     {[
-                        { title: "Población", icon: <FaUsers />, value: "1.2M", percent: 85, color: "primary" },
-                        { title: "Municipios", icon: <FaCity />, value: "125", percent: 100, color: "success" },
-                        { title: "Secretarías", icon: <FaBuilding />, value: "15", percent: 90, color: "info" },
-                        { title: "Proyectos", icon: <FaChartBar />, value: "450", percent: 75, color: "warning" },
-                        { title: "Cobertura", icon: <FaMapMarkedAlt />, value: "98%", percent: 98, color: "danger" },
+                        { title: "Municipios", icon: <FaCity />, value: publicMetrics?.totalMunicipios || "-", color: "success" },
+                        { title: "Secretarías", icon: <FaBuilding />, value: publicMetrics?.totalSecretarias || "-", color: "info" },
+                        { title: "Indicadores", icon: <FaChartBar />, value: publicMetrics?.totalIndicadores || "-", color: "warning" },
+                        { title: "Variables", icon: <FaMapMarkedAlt />, value: publicMetrics?.totalVariables || "-", color: "danger" },
                     ].map((item, idx) => (
                         <Col key={idx}>
                             <Card className="h-100 text-center shadow-sm hover-card border-0">
                                 <Card.Body>
                                     <div className={`fs-1 text-${item.color} mb-3 icon-container`}>{item.icon}</div>
                                     <Card.Title className="mb-3">{item.title}</Card.Title>
-                                    <Card.Text className="fs-4 fw-bold mb-2">{item.value}</Card.Text>
-                                    <div className="mt-3">
-                                        <small className="text-muted d-block mb-1">Avance</small>
-                                        <ProgressBar
-                                            now={item.percent}
-                                            variant={item.color}
-                                            style={{ height: '8px' }}
-                                            animated
-                                        />
-                                    </div>
+                                    <Card.Text className="fs-4 fw-bold mb-2">{
+                                        publicMetrics ? item.value : <Spinner animation="border" size="sm" variant={item.color} />
+                                    }</Card.Text>
                                 </Card.Body>
                             </Card>
                         </Col>
