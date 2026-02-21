@@ -27,7 +27,7 @@ const LoginPage = () => {
             <style>
                 {`
                     .login-bg-column {
-                        background-image: url('/src/assets/img/login-bg.png');
+                        background-image: url('/images/login-bg.png');
                         background-size: cover;
                         background-position: center;
                         position: relative;
@@ -62,7 +62,7 @@ const LoginPage = () => {
             <div className="col-12 col-md-5 login-form-column p-5 shadow-lg">
                 <div className="flex-grow-1 d-flex flex-column justify-content-center">
                     <div className="text-center">
-                        <img src="/src/assets/img/logo.png" alt="Logo" className="login-logo img-fluid" />
+                        <img src="/images/logo.png" alt="Logo" className="login-logo img-fluid" />
                         <h2 className="fw-bold mb-4 text-primary">Indicadores</h2>
                         <h4 className="text-muted mb-5">Iniciar Sesión</h4>
                     </div>

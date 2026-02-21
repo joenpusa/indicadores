@@ -61,6 +61,9 @@ const LandingPage = () => {
                     .hover-card:hover .icon-container {
                         transform: scale(1.1);
                     }
+                    .text-shadow {
+                        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                    }
                 `}
             </style>
             {/* Navbar */}
@@ -81,18 +84,39 @@ const LandingPage = () => {
             {/* Carousel */}
             <Carousel>
                 <Carousel.Item>
-                    <div style={{ height: '400px', backgroundColor: '#777' }} className="d-flex align-items-center justify-content-center text-white">
-                        <h3>Análisis de Datos</h3>
+                    <div style={{ height: '400px', backgroundColor: '#000', position: 'relative' }} className="d-flex align-items-center justify-content-center text-white">
+                        <img
+                            src="/images/carousel/analisis_datos.png"
+                            alt="Análisis de Datos"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6, position: 'absolute', top: 0, left: 0 }}
+                        />
+                        <div style={{ position: 'relative', zIndex: 1 }}>
+                            <h3 className="display-4 fw-bold text-shadow">Análisis de Datos</h3>
+                        </div>
                     </div>
                 </Carousel.Item>
                 <Carousel.Item>
-                    <div style={{ height: '400px', backgroundColor: '#555' }} className="d-flex align-items-center justify-content-center text-white">
-                        <h3>Gestión Territorial</h3>
+                    <div style={{ height: '400px', backgroundColor: '#000', position: 'relative' }} className="d-flex align-items-center justify-content-center text-white">
+                        <img
+                            src="/images/carousel/gestion_territorial.png"
+                            alt="Gestión Territorial"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6, position: 'absolute', top: 0, left: 0 }}
+                        />
+                        <div style={{ position: 'relative', zIndex: 1 }}>
+                            <h3 className="display-4 fw-bold text-shadow">Gestión Territorial</h3>
+                        </div>
                     </div>
                 </Carousel.Item>
                 <Carousel.Item>
-                    <div style={{ height: '400px', backgroundColor: '#333' }} className="d-flex align-items-center justify-content-center text-white">
-                        <h3>Toma de Decisiones</h3>
+                    <div style={{ height: '400px', backgroundColor: '#000', position: 'relative' }} className="d-flex align-items-center justify-content-center text-white">
+                        <img
+                            src="/images/carousel/toma_decisiones.png"
+                            alt="Toma de Decisiones"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6, position: 'absolute', top: 0, left: 0 }}
+                        />
+                        <div style={{ position: 'relative', zIndex: 1 }}>
+                            <h3 className="display-4 fw-bold text-shadow">Toma de Decisiones</h3>
+                        </div>
                     </div>
                 </Carousel.Item>
             </Carousel>
