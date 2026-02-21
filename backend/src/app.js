@@ -25,6 +25,7 @@ app.get('/', (req, res) => {
 const authRoutes = require('./routes/auth.routes');
 const secretariasRoutes = require('./routes/secretarias');
 const indicadoresRoutes = require('./routes/indicadores.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
 // const userRoutes = require('./routes/user.routes');
 
 // Use Routes
@@ -35,6 +36,7 @@ app.use('/api/municipios', require('./routes/municipios.routes'));
 app.use('/api/zonas', require('./routes/zonas.routes'));
 app.use('/api/users', require('./routes/users.routes'));
 app.use('/api/indicadores', indicadoresRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
