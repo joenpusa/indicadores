@@ -10,7 +10,15 @@ const port = process.env.PORT || 4000;
 // Middlewares
 app.use(helmet());
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        const allowedOrigins = ['http://localhost:5173', 'https://dha-san.nortedesantander.gov.co'];
+        if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.nortedesantander.gov.co')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 app.use(express.json());
