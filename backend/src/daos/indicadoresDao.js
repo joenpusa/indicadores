@@ -71,10 +71,10 @@ class IndicadoresDAO {
     }
 
     static async create(data) {
-        const { id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad } = data;
+        const { id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad, tipo_indicador } = data;
         const [result] = await pool.query(
-            'INSERT INTO indicadores (id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad) VALUES (?, ?, ?, ?, ?, ?)',
-            [id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad]
+            'INSERT INTO indicadores (id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad, tipo_indicador) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad, tipo_indicador]
         );
         return result.insertId;
     }
@@ -89,6 +89,7 @@ class IndicadoresDAO {
         if (data.es_activo !== undefined) { fields.push('es_activo = ?'); params.push(data.es_activo); }
         if (data.id_secretaria !== undefined) { fields.push('id_secretaria = ?'); params.push(data.id_secretaria); }
         if (data.periodicidad !== undefined) { fields.push('periodicidad = ?'); params.push(data.periodicidad); }
+        if (data.tipo_indicador !== undefined) { fields.push('tipo_indicador = ?'); params.push(data.tipo_indicador); }
 
         if (fields.length === 0) return false;
 

@@ -9,6 +9,7 @@ class IndicadoresModel {
         if (!data.nombre) throw new Error('El nombre del indicador es obligatorio');
         if (!data.id_secretaria) throw new Error('La secretaría es obligatoria');
         if (!data.periodicidad) throw new Error('La periodicidad es obligatoria');
+        if (!data.tipo_indicador) throw new Error('El tipo de indicador es obligatorio');
 
         return await IndicadoresDAO.create(data);
     }

@@ -11,7 +11,8 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
         descripcion: '',
         unidad_base: '',
         es_activo: true,
-        periodicidad: ''
+        periodicidad: '',
+        tipo_indicador: 'Disponibilidad'
     });
     // Store selected object for TableSecretarias
     const [selectedSecretaria, setSelectedSecretaria] = useState(null);
@@ -28,7 +29,8 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
                     descripcion: indicador.descripcion || '',
                     unidad_base: indicador.unidad_base || '',
                     es_activo: indicador.es_activo === 1,
-                    periodicidad: indicador.periodicidad || ''
+                    periodicidad: indicador.periodicidad || '',
+                    tipo_indicador: indicador.tipo_indicador || 'Disponibilidad'
                 });
                 // If we have the name, we set it for display. If only ID is available, TableSecretarias might need fetching or just display ID (usually passed as object)
                 // Indicador object usually has nombre_secretaria from join.
@@ -43,7 +45,8 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
                     descripcion: '',
                     unidad_base: '',
                     es_activo: true,
-                    periodicidad: ''
+                    periodicidad: '',
+                    tipo_indicador: 'Disponibilidad'
                 });
                 setSelectedSecretaria(null);
             }
@@ -170,6 +173,25 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
                                 </FloatingLabel>
                                 <Form.Text className="text-muted small">
                                     Define qué periodos se pueden cargar.
+                                </Form.Text>
+                            </div>
+                            <div className="mb-3">
+                                <FloatingLabel controlId="floatingTipoIndicador" label="Tipo de indicador *">
+                                    <Form.Select
+                                        name="tipo_indicador"
+                                        value={formData.tipo_indicador}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="">Seleccione...</option>
+                                        <option value="Disponibilidad">Disponibilidad</option>
+                                        <option value="Adecuación">Adecuación</option>
+                                        <option value="Acceso">Acceso</option>
+                                        <option value="Sostenibilidad">Sostenibilidad</option>
+                                    </Form.Select>
+                                </FloatingLabel>
+                                <Form.Text className="text-muted small">
+                                    Clasificación del indicador.
                                 </Form.Text>
                             </div>
                         </Col>
