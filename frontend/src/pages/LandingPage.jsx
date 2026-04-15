@@ -4,10 +4,14 @@ import dashboardService from '@/services/dashboardService';
 import React, { useState, useEffect } from 'react';
 import { Button, Card, Carousel, Col, Container, Nav, Navbar, ProgressBar, Row, Spinner } from 'react-bootstrap';
 import { FaBuilding, FaChartBar, FaCity, FaFacebook, FaInstagram, FaMapMarkedAlt, FaTwitter, FaUsers, FaYoutube } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Database, Target, Unlock, Leaf } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import NorteSantanderMap from '@/components/NorteSantanderMap';
+import PublicNavbar from '@/components/layout/PublicNavbar';
+import PublicFooter from '@/components/layout/PublicFooter';
 
 const LandingPage = () => {
+    const navigate = useNavigate();
     const [dashboardData, setDashboardData] = useState(null);
     const [loadingDashboard, setLoadingDashboard] = useState(false);
     const [activeIndicador, setActiveIndicador] = useState(null);
@@ -80,20 +84,8 @@ const LandingPage = () => {
                     }
                 `}
             </style>
-            {/* Navbar */}
-            <Navbar bg="dark" variant="dark" expand="lg">
-                <Container>
-                    <Navbar.Brand href="#">
-                        <FaMapMarkedAlt className="me-2" />
-                        Indicadores
-                    </Navbar.Brand>
-                    <Nav className="ms-auto">
-                        <Link to="/login">
-                            <Button variant="outline-light">Iniciar Sesión</Button>
-                        </Link>
-                    </Nav>
-                </Container>
-            </Navbar>
+            
+            <PublicNavbar />
 
             {/* Carousel */}
             <Carousel>
@@ -134,6 +126,44 @@ const LandingPage = () => {
                     </div>
                 </Carousel.Item>
             </Carousel>
+
+
+            {/* Categorías de Indicadores Section */}
+            <Container className="my-5">
+                <h2 className="text-center mb-4">Explorar Categorías de Indicadores</h2>
+                <Row xs={1} md={2} lg={4} className="g-4 justify-content-center">
+                    {[
+                        { title: 'Disponibilidad', icon: Database, color: 'primary', desc: 'Monitoreo de recursos y suministros disponibles.' },
+                        { title: 'Adecuación', icon: Target, color: 'success', desc: 'Evaluación de calidad y pertinencia de los recursos.' },
+                        { title: 'Acceso', icon: Unlock, color: 'warning', desc: 'Métricas de distribución y accesibilidad territorial.' },
+                        { title: 'Sostenibilidad', icon: Leaf, color: 'info', desc: 'Análisis de impacto y viabilidad a largo plazo.' }
+                    ].map((cat, idx) => (
+                        <Col key={idx}>
+                            <Card
+                                className={`h-100 shadow-sm border-0 border-bottom border-${cat.color} border-4 bg-white`}
+                                onClick={() => navigate(`/indicadores/tipo/${encodeURIComponent(cat.title)}`)}
+                                style={{ transition: 'all 0.3s ease', cursor: 'pointer' }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-5px)';
+                                    e.currentTarget.classList.add('shadow-lg');
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.classList.remove('shadow-lg');
+                                }}
+                            >
+                                <Card.Body className="d-flex flex-column align-items-center text-center p-4">
+                                    <div className={`rounded-circle bg-${cat.color} bg-opacity-10 mb-3 d-flex justify-content-center align-items-center`} style={{ width: '70px', height: '70px' }}>
+                                        <cat.icon size={32} className={`text-${cat.color}`} />
+                                    </div>
+                                    <h5 className="fw-bold mb-2 text-dark">{cat.title}</h5>
+                                    <p className="text-muted small mb-0">{cat.desc}</p>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
+            </Container>
 
             {/* Map Section */}
             <NorteSantanderMap
@@ -188,57 +218,7 @@ const LandingPage = () => {
                 </Row>
             </Container>
 
-            {/* Footer */}
-            <footer className="bg-dark text-white py-5 mt-auto">
-                <Container>
-                    <Row>
-                        <Col md={4} className="d-flex align-items-center justify-content-center mb-4 mb-md-0">
-                            <img
-                                src="https://www.nortedesantander.gov.co/assets/images/Logo_autoridad_footer.jpg"
-                                alt="Logo Gobernación"
-                                className="img-fluid"
-                                style={{ maxHeight: '150px' }}
-                            />
-                        </Col>
-                        <Col md={4} className="mb-4 mb-md-0">
-                            <h5>Gobernación de Norte de Santander</h5>
-                            <p className="small mb-1"><strong>Sede principal</strong></p>
-                            <p className="small mb-1">Dirección: Avenida 5 esquina entre Calle 13 y 14, Cúcuta, Norte de Santander.</p>
-                            <p className="small mb-1">Código Postal: 540001.</p>
-                            <p className="small mb-1">Horario de atención: Lunes a Viernes de 7:30 a.m a 11:30 a.m. y 2:00 p.m. a 5:30 p.m.</p>
-                            <p className="small mb-1">Horario de atención (Unidad de Correspondencia): Lunes a Viernes de 7:30 a.m a 11:00 a.m. y 2:00 p.m. a 5:00 p.m.</p>
-                            <p className="small mb-1">Teléfono conmutador: +57 (607) 5956200.</p>
-                            <p className="small mb-1">Línea gratuita: 018000185783.</p>
-                            <p className="small mb-1">Línea anticorrupción: +57 (607) 5915060.</p>
-                            <p className="small mb-1">Línea PQRSD: +57 (607) 5915091.</p>
-                            <p className="small mb-1">Correo institucional: gobernacion@nortedesantander.gov.co.</p>
-                            <p className="small mb-1">Correo de notificaciones judiciales: secjuridica@nortedesantander.gov.co.</p>
-                        </Col>
-                        <Col md={4} className="d-flex flex-column align-items-center justify-content-center">
-                            <h5 className="mb-3">Síguenos</h5>
-                            <div className="d-flex gap-3">
-                                <a href="https://www.instagram.com/gobernorte" target="_blank" rel="noopener noreferrer" className="text-white fs-2">
-                                    <FaInstagram />
-                                </a>
-                                <a href="https://www.facebook.com/GobernaciondeNortedeSantander" target="_blank" rel="noopener noreferrer" className="text-white fs-2">
-                                    <FaFacebook />
-                                </a>
-                                <a href="https://twitter.com/GoberNorte" target="_blank" rel="noopener noreferrer" className="text-white fs-2">
-                                    <FaTwitter />
-                                </a>
-                                <a href="https://www.youtube.com/c/Gobernaci%C3%B3nNortedeSantander" target="_blank" rel="noopener noreferrer" className="text-white fs-2">
-                                    <FaYoutube />
-                                </a>
-                            </div>
-                        </Col>
-                    </Row>
-                    <Row className="mt-4 pt-3 border-top border-secondary text-center">
-                        <Col>
-                            <p className="mb-0 small">&copy; {new Date().getFullYear()} Indicadores. Todos los derechos reservados.</p>
-                        </Col>
-                    </Row>
-                </Container>
-            </footer>
+            <PublicFooter />
         </div>
     );
 };

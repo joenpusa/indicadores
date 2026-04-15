@@ -17,6 +17,7 @@ import VariablesPage from './modules/indicadores/VariablesPage';
 import VisualizacionPage from './modules/indicadores/VisualizacionPage';
 import CargaDatosPage from './modules/indicadores/CargaDatosPage';
 import IndicadorDataPage from './modules/indicadores/IndicadorDataPage';
+import TypeIndicatorsPage from './modules/indicadores/TypeIndicatorsPage';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <ConfirmProvider>
             <Routes>
               <Route path="/" element={<LandingPage />} />
+              <Route path="/indicadores/tipo/:tipo" element={<TypeIndicatorsPage />} />
               <Route path="/login" element={<LoginPage />} />
 
               <Route path="/dashboard" element={<PrivateRoute />}>
