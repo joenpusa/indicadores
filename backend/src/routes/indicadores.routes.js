@@ -14,11 +14,8 @@ router.put('/:id', IndicadoresController.actualizarIndicador);
 // Variables
 router.get('/:id/variables', IndicadoresController.listarVariables);
 router.post('/:id/variables', IndicadoresController.crearVariable);
-// Note: Updating/Deleting a specific variable might need a different route structure if ID is variable ID.
-// Suggesting /variables/:id for direct updates if needed, but usually nested is mostly for creation/listing.
-// Let's add specific variable routes here or separate file?
-// Common pattern: /indicadores/:id/variables (list/create)
-// And for update/delete specific variable:
+router.put('/:id/variables/reorder', IndicadoresController.reordenarVariables);
+
 router.put('/variables/:id', IndicadoresController.actualizarVariable);
 router.delete('/variables/:id', IndicadoresController.eliminarVariable);
 

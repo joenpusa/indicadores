@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Card, Form, Badge, Spinner, Row, Col, Alert, FloatingLabel, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { FaArrowLeft, FaPlus, FaTrash, FaEdit, FaSave, FaTimes, FaInfoCircle } from 'react-icons/fa';
+import { FaArrowLeft, FaPlus, FaTrash, FaEdit, FaSave, FaTimes, FaInfoCircle, FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import indicadoresService from '../../services/indicadoresService';
 
 const VariablesPage = () => {
@@ -82,6 +82,31 @@ const VariablesPage = () => {
         }
     };
 
+    const moveVariable = async (index, direction) => {
+        const newIndex = direction === 'up' ? index - 1 : index + 1;
+        if (newIndex < 0 || newIndex >= variables.length) return;
+
+        const newVariables = [...variables];
+        const temp = newVariables[index];
+        newVariables[index] = newVariables[newIndex];
+        newVariables[newIndex] = temp;
+
+        // Update orden based on new index
+        const updatedVariables = newVariables.map((v, i) => ({ ...v, orden: i + 1 }));
+        setVariables(updatedVariables);
+
+        try {
+            await indicadoresService.reorderVariables(id, updatedVariables.map(v => ({
+                id_variable: v.id_variable,
+                orden: v.orden
+            })));
+        } catch (error) {
+            console.error("Error reordering variables", error);
+            setFormError('Error al reordenar variables');
+            loadData(); // Revert on error
+        }
+    };
+
     const submitForm = async (e) => {
         e.preventDefault();
         if (!formData.nombre.trim()) {
@@ -149,7 +174,7 @@ const VariablesPage = () => {
                         )}
                     </div>
 
-                    {variables.map((variable) => (
+                    {variables.map((variable, index) => (
                         <Card key={variable.id_variable} className="mb-3 shadow-sm border-0">
                             <Card.Body className="d-flex justify-content-between align-items-center">
                                 <div>
@@ -175,7 +200,15 @@ const VariablesPage = () => {
                                         )}
                                     </div>
                                 </div>
-                                <div className="d-flex gap-2">
+                                <div className="d-flex align-items-center gap-2">
+                                    <div className="d-flex align-items-center me-2 border-end pe-2">
+                                        <Button variant="link" className="text-secondary p-1" disabled={index === 0} onClick={() => moveVariable(index, 'up')}>
+                                            <FaArrowUp />
+                                        </Button>
+                                        <Button variant="link" className="text-secondary p-1" disabled={index === variables.length - 1} onClick={() => moveVariable(index, 'down')}>
+                                            <FaArrowDown />
+                                        </Button>
+                                    </div>
                                     <Button variant="outline-primary" size="sm" onClick={() => handleEdit(variable)}>
                                         <FaEdit />
                                     </Button>

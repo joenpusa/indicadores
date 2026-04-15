@@ -41,6 +41,11 @@ const deleteVariable = async (idVariable) => {
     return response.data;
 };
 
+const reorderVariables = async (idIndicador, variablesData) => {
+    const response = await api.put(`/indicadores/${idIndicador}/variables/reorder`, variablesData);
+    return response.data;
+};
+
 // Configuración
 const getConfig = async (idIndicador) => {
     const response = await api.get(`/indicadores/${idIndicador}/visualizacion`);
@@ -112,6 +117,7 @@ const indicadoresService = {
     createVariable,
     updateVariable,
     deleteVariable,
+    reorderVariables,
     getConfig,
     saveConfig,
     getPeriodos,

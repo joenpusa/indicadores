@@ -43,6 +43,23 @@ class VariablesDAO {
         await pool.query('DELETE FROM indicador_variables WHERE id_variable = ?', [id]);
         return true;
     }
+
+    static async updateReorder(variables) {
+        const connection = await pool.getConnection();
+        try {
+            await connection.beginTransaction();
+            for (const v of variables) {
+                await connection.query('UPDATE indicador_variables SET orden = ? WHERE id_variable = ?', [v.orden, v.id_variable]);
+            }
+            await connection.commit();
+            return true;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+    }
 }
 
 module.exports = VariablesDAO;

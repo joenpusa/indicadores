@@ -23,6 +23,11 @@ class VariablesModel {
         if (!id) throw new Error('ID es requerido');
         return await VariablesDAO.delete(id);
     }
+
+    static async reorderVariables(variables) {
+        if (!variables || !Array.isArray(variables)) throw new Error('Variables array is required');
+        return await VariablesDAO.updateReorder(variables);
+    }
 }
 
 module.exports = VariablesModel;

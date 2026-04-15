@@ -351,6 +351,16 @@ class IndicadoresController {
         }
     }
 
+    static async reordenarVariables(req, res) {
+        try {
+            const variables = req.body;
+            await VariablesModel.reorderVariables(variables);
+            res.json({ message: 'Variables reordenadas' });
+        } catch (error) {
+            res.status(400).json({ error: true, message: error.message });
+        }
+    }
+
     // --- Configuración Visualización ---
     static async obtenerConfiguracion(req, res) {
         try {
