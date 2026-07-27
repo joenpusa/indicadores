@@ -28,6 +28,11 @@ class IndicadoresDAO {
             params.push(filters.id_secretaria);
         }
 
+        if (filters.tipo_indicador) {
+            whereClauses.push('LOWER(i.tipo_indicador) = LOWER(?)');
+            params.push(filters.tipo_indicador);
+        }
+
         if (whereClauses.length > 0) {
             const whereClause = ' WHERE ' + whereClauses.join(' AND ');
             sql += whereClause;

@@ -28,9 +28,6 @@ const MapUpdater = ({ center, zoom, bounds }) => {
 };
 
 const NorteSantanderMap = ({ mapData = null, title = "Mapa de Norte de Santander", onFilterApplied }) => {
-    // We remove the internal 'municipios' state because the TableMunicipios handles fetching now.
-    // If we need data for other things (like stats), we might re-add it differently.
-
     // const [municipios, setMunicipios] = useState([]); // REMOVED
     const [geoJsonData, setGeoJsonData] = useState(null);
     const [selectedMunicipio, setSelectedMunicipio] = useState(null); // Active Map State
@@ -284,7 +281,7 @@ const NorteSantanderMap = ({ mapData = null, title = "Mapa de Norte de Santander
                 </Col>
             </Row>
             <Row>
-                <Col md={4} className="mb-4 mb-md-0">
+                {/* <Col md={4} className="mb-4 mb-md-0">
                     <Card className="h-100 shadow-sm">
                         <Card.Body>
                             <Card.Title>Filtros</Card.Title>
@@ -351,60 +348,59 @@ const NorteSantanderMap = ({ mapData = null, title = "Mapa de Norte de Santander
                                 </Col>
                             </Form.Group>
 
-                            {/* Summary Section */}
-                            {(selectedMunicipio || selectedIndicador) && (
-                                <div className="mt-3 mb-3">
-                                    <h6 className="text-muted small text-uppercase fw-bold mb-2">Filtros Activos:</h6>
-                                    <div className="d-flex flex-column gap-1">
-                                        {selectedMunicipio && (
-                                            <Alert variant="info" className="py-2 mb-0 small">
-                                                Municipio: <strong>{getSelectedName()}</strong>
-                                            </Alert>
-                                        )}
-                                        {selectedIndicador && (
-                                            <Alert variant="success" className="py-2 mb-0 small">
-                                                Indicador: <strong>{selectedIndicador.nombre}</strong>
-                                            </Alert>
-                                        )}
-                                        {selectedPeriodoObj && (
-                                            <Alert variant="warning" className="py-2 mb-0 small">
-                                                Periodo: <strong>{selectedPeriodoObj.anio} {selectedPeriodoObj.numero ? `- ${selectedPeriodoObj.numero}` : ''}</strong>
-                                            </Alert>
-                                        )}
-                                        {selectedVariableObj && (
-                                            <Alert variant="secondary" className="py-2 mb-0 small">
-                                                Var: <strong>{selectedVariableObj.nombre}</strong>
-                                            </Alert>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
+                   
+                {(selectedMunicipio || selectedIndicador) && (
+                    <div className="mt-3 mb-3">
+                        <h6 className="text-muted small text-uppercase fw-bold mb-2">Filtros Activos:</h6>
+                        <div className="d-flex flex-column gap-1">
                             {selectedMunicipio && (
-                                <div className="mt-4">
-                                    <Button variant="outline-primary" onClick={handleClearFilters} size="sm">
-                                        Limpiar filtros
-                                    </Button>
-                                </div>
+                                <Alert variant="info" className="py-2 mb-0 small">
+                                    Municipio: <strong>{getSelectedName()}</strong>
+                                </Alert>
                             )}
-
-                            {/* Legend */}
-                            {mapData && (
-                                <div className="mt-3">
-                                    <h6 className="text-muted small fw-bold mb-2">Escala de Valores</h6>
-                                    <div className="d-flex align-items-center justify-content-between small">
-                                        <div className="d-flex align-items-center"><span className="d-inline-block me-1" style={{ width: 12, height: 12, background: '#FFEDA0' }}></span> 0</div>
-                                        <div className="d-flex align-items-center"><span className="d-inline-block me-1" style={{ width: 12, height: 12, background: '#FD8D3C' }}></span> Baja</div>
-                                        <div className="d-flex align-items-center"><span className="d-inline-block me-1" style={{ width: 12, height: 12, background: '#E31A1C' }}></span> Media</div>
-                                        <div className="d-flex align-items-center"><span className="d-inline-block me-1" style={{ width: 12, height: 12, background: '#800026' }}></span> Alta</div>
-                                    </div>
-                                </div>
+                            {selectedIndicador && (
+                                <Alert variant="success" className="py-2 mb-0 small">
+                                    Indicador: <strong>{selectedIndicador.nombre}</strong>
+                                </Alert>
                             )}
+                            {selectedPeriodoObj && (
+                                <Alert variant="warning" className="py-2 mb-0 small">
+                                    Periodo: <strong>{selectedPeriodoObj.anio} {selectedPeriodoObj.numero ? `- ${selectedPeriodoObj.numero}` : ''}</strong>
+                                </Alert>
+                            )}
+                            {selectedVariableObj && (
+                                <Alert variant="secondary" className="py-2 mb-0 small">
+                                    Var: <strong>{selectedVariableObj.nombre}</strong>
+                                </Alert>
+                            )}
+                        </div>
+                    </div>
+                )}
 
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col md={8}>
+                {selectedMunicipio && (
+                    <div className="mt-4">
+                        <Button variant="outline-primary" onClick={handleClearFilters} size="sm">
+                            Limpiar filtros
+                        </Button>
+                    </div>
+                )}
+
+                {mapData && (
+                    <div className="mt-3">
+                        <h6 className="text-muted small fw-bold mb-2">Escala de Valores</h6>
+                        <div className="d-flex align-items-center justify-content-between small">
+                            <div className="d-flex align-items-center"><span className="d-inline-block me-1" style={{ width: 12, height: 12, background: '#FFEDA0' }}></span> 0</div>
+                            <div className="d-flex align-items-center"><span className="d-inline-block me-1" style={{ width: 12, height: 12, background: '#FD8D3C' }}></span> Baja</div>
+                            <div className="d-flex align-items-center"><span className="d-inline-block me-1" style={{ width: 12, height: 12, background: '#E31A1C' }}></span> Media</div>
+                            <div className="d-flex align-items-center"><span className="d-inline-block me-1" style={{ width: 12, height: 12, background: '#800026' }}></span> Alta</div>
+                        </div>
+                    </div>
+                )}
+
+            </Card.Body>
+        </Card>
+                </Col > */}
+                <Col md={12}>
                     <Card className="shadow-sm border-0 overflow-hidden" style={{ height: '700px' }}>
                         <MapContainer
                             crs={CRS.Simple}
@@ -431,8 +427,8 @@ const NorteSantanderMap = ({ mapData = null, title = "Mapa de Norte de Santander
                         </MapContainer>
                     </Card>
                 </Col>
-            </Row>
-        </Container>
+            </Row >
+        </Container >
     );
 };
 

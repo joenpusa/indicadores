@@ -84,7 +84,7 @@ const LandingPage = () => {
                     }
                 `}
             </style>
-            
+
             <PublicNavbar />
 
             {/* Carousel */}
@@ -135,7 +135,7 @@ const LandingPage = () => {
                     {[
                         { title: 'Disponibilidad', icon: Database, color: 'primary', desc: 'Monitoreo de recursos y suministros disponibles.' },
                         { title: 'Adecuación', icon: Target, color: 'success', desc: 'Evaluación de calidad y pertinencia de los recursos.' },
-                        { title: 'Acceso', icon: Unlock, color: 'warning', desc: 'Métricas de distribución y accesibilidad territorial.' },
+                        { title: 'Accesibilidad', icon: Unlock, color: 'warning', desc: 'Métricas de distribución y accesibilidad territorial.' },
                         { title: 'Sostenibilidad', icon: Leaf, color: 'info', desc: 'Análisis de impacto y viabilidad a largo plazo.' }
                     ].map((cat, idx) => (
                         <Col key={idx}>

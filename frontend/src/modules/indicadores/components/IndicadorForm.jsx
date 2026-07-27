@@ -186,7 +186,7 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
                                         <option value="">Seleccione...</option>
                                         <option value="Disponibilidad">Disponibilidad</option>
                                         <option value="Adecuación">Adecuación</option>
-                                        <option value="Acceso">Acceso</option>
+                                        <option value="Accesibilidad">Accesibilidad</option>
                                         <option value="Sostenibilidad">Sostenibilidad</option>
                                     </Form.Select>
                                 </FloatingLabel>

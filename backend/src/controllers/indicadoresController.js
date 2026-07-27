@@ -269,8 +269,8 @@ class IndicadoresController {
     // --- Indicadores ---
     static async listarIndicadores(req, res) {
         try {
-            const { q, active, page, limit, id_secretaria } = req.query;
-            const result = await IndicadoresModel.getAllIndicadores({ q, active, page, limit, id_secretaria });
+            const { q, active, page, limit, id_secretaria, tipo_indicador } = req.query;
+            const result = await IndicadoresModel.getAllIndicadores({ q, active, page, limit, id_secretaria, tipo_indicador });
             res.json(result);
         } catch (error) {
             res.status(500).json({ error: true, message: error.message });
