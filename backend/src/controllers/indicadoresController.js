@@ -205,7 +205,17 @@ class IndicadoresController {
                     continue;
                 }
 
-                // 3. Find or Create Period
+                // 3. Validar valores de variables numéricas
+                for (const variable of variables) {
+                    const val = row[variable.nombre];
+                    if (val !== undefined && val !== null && val !== '') {
+                        if (variable.tipo === 'numero' && isNaN(Number(val))) {
+                            errors.push(`Fila ${rowNum}: El valor '${val}' para la variable '${variable.nombre}' no es numérico.`);
+                        }
+                    }
+                }
+
+                // 4. Find or Create Period
                 // Could be optimized by caching periods, but findOrCreate logic handles it reasonable well.
                 // We await inside loop, simpler logic.
                 const idPeriodo = await PeriodosModel.findOrCreate(tipoPeriodo, anio, numero);
@@ -219,12 +229,18 @@ class IndicadoresController {
                 });
             }
 
-            // If ALL failed
-            if (recordsToCreate.length === 0 && errors.length > 0) {
+            // SI EXISTE ALGÚN ERROR en cualquiera de las filas, abortar completamente para evitar duplicaciones de datos al reintentar
+            if (errors.length > 0) {
                 const logContent = errors.join('\n');
                 return res.status(400).json({
-                    message: 'Todos los registros fallaron.',
+                    message: `No se pudo procesar el archivo. Se encontraron ${errors.length} fila(s) con errores. No se cargó ningún registro para evitar duplicaciones. Descarga el reporte, corrige las filas señaladas en tu Excel y vuelve a cargarlo completo.`,
                     log: logContent
+                });
+            }
+
+            if (recordsToCreate.length === 0) {
+                return res.status(400).json({
+                    message: 'El archivo no contiene filas válidas para procesar.'
                 });
             }
 
@@ -247,16 +263,6 @@ class IndicadoresController {
             });
 
             await ValoresDAO.createBatch(valuesToCreate);
-
-            if (errors.length > 0) {
-                // Partial success
-                const logContent = errors.join('\n');
-                return res.json({
-                    message: `Se cargaron ${createdRecords.length} registros. Fallaron ${errors.length}.`,
-                    log: logContent,
-                    partial: true
-                });
-            }
 
             res.json({ message: `Carga exitosa. ${createdRecords.length} registros creados.` });
 

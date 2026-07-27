@@ -317,11 +317,15 @@ const CargaDatosPage = () => {
                                     <div className="text-center py-4">
                                         <FaFileExcel size={48} className="text-success mb-3" />
                                         <h4>Carga de Datos desde Excel</h4>
-                                        <p className="text-muted mb-4">
+                                        <p className="text-muted mb-3">
                                             Descarga la plantilla, diligénciala con los datos correspondientes y súbela nuevamente.
                                         </p>
 
-                                        <div className="d-flex justify-content-center gap-3 mb-5">
+                                        <div className="alert alert-info py-2 px-3 mb-4 mx-auto text-start small" style={{ maxWidth: '600px' }}>
+                                            <strong>Nota de validación:</strong> La carga es 100% transaccional. Si existe alguna fila con errores (código de municipio inválido, formato de periodo incorrecto o valor no numérico), <strong>no se cargará ningún registro</strong> y se generará un reporte de errores. Esto garantiza que puedas corregir tu archivo y volver a subirlo sin generar datos duplicados.
+                                        </div>
+
+                                        <div className="d-flex justify-content-center gap-3 mb-4">
                                             <Button variant="outline-success" onClick={handleDownloadTemplate}>
                                                 <FaDownload className="me-2" /> Descargar Plantilla
                                             </Button>
