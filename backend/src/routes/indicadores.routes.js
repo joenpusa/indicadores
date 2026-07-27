@@ -27,6 +27,7 @@ router.post('/:id/visualizacion', IndicadoresController.guardarConfiguracion); /
 router.get('/:id/plantilla', IndicadoresController.descargarPlantilla);
 router.post('/:id/carga', upload.single('archivo'), IndicadoresController.cargarDatos);
 router.get('/:id/registros', IndicadoresController.obtenerDatos);
+router.delete('/:id/registros/all', IndicadoresController.eliminarTodosRegistros);
 router.delete('/:id/registros/:idRegistro', IndicadoresController.eliminarRegistro);
 router.get('/:id/dashboard', IndicadoresController.obtenerDatosDashboard);
 

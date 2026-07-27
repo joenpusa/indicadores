@@ -52,6 +52,19 @@ const IndicadorDataPage = () => {
         }
     };
 
+    const handleDeleteAll = async () => {
+        if (await confirm({ message: '¿Estás seguro de eliminar TODOS los datos cargados para este indicador? Esta acción no se puede deshacer.', variant: 'danger' })) {
+            try {
+                await indicadoresService.deleteAllRegistros(id);
+                success('Todos los datos cargados fueron eliminados correctamente');
+                loadData();
+            } catch (error) {
+                console.error(error);
+                showError('Error al eliminar todos los datos del indicador');
+            }
+        }
+    };
+
     // Helper to format Period Name
     const formatPeriodo = (r) => {
         if (r.tipo === 'anual') return r.anio;
@@ -78,11 +91,22 @@ const IndicadorDataPage = () => {
 
             <Card className="shadow-sm border-0">
                 <Card.Body>
-                    <div className="mb-3 d-flex justify-content-between align-items-center">
+                    <div className="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <h5 className="m-0"><FaTable className="me-2 text-primary" />Registros Cargados ({registros.length})</h5>
-                        <Button variant="outline-success" size="sm" onClick={() => navigate(`/dashboard/indicadores/${id}/carga`)}>
-                            Cargar Nuevos Datos
-                        </Button>
+                        <div className="d-flex gap-2">
+                            <Button 
+                                variant="outline-danger" 
+                                size="sm" 
+                                onClick={handleDeleteAll} 
+                                disabled={registros.length === 0}
+                                className="d-flex align-items-center gap-1"
+                            >
+                                <FaTrash size={12} /> Eliminar Todos los Datos
+                            </Button>
+                            <Button variant="outline-success" size="sm" onClick={() => navigate(`/dashboard/indicadores/${id}/carga`)}>
+                                Cargar Nuevos Datos
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="table-responsive">

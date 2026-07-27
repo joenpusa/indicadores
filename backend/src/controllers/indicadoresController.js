@@ -409,6 +409,17 @@ class IndicadoresController {
         }
     }
 
+    static async eliminarTodosRegistros(req, res) {
+        try {
+            const { id } = req.params; // id_indicador
+            const deleted = await RegistrosDAO.deleteByIndicador(id);
+            res.json({ message: `Se eliminaron ${deleted} registros correctamente`, deleted });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: true, message: 'Error al eliminar todos los registros del indicador' });
+        }
+    }
+
     // --- Periodos ---
     static async listarPeriodos(req, res) {
         try {

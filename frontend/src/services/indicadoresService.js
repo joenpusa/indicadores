@@ -88,6 +88,11 @@ const deleteRegistro = async (id, idRegistro) => {
     return response.data;
 };
 
+const deleteAllRegistros = async (id) => {
+    const response = await api.delete(`/indicadores/${id}/registros/all`);
+    return response.data;
+};
+
 // Periodos
 const getPeriodos = async () => {
     const response = await api.get('/indicadores/periodos/all');
@@ -129,6 +134,7 @@ const indicadoresService = {
     createRegistro,
     getRegistros,
     deleteRegistro,
+    deleteAllRegistros,
     getDashboardData
 };
 
