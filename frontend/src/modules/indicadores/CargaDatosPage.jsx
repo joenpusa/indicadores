@@ -45,11 +45,6 @@ const CargaDatosPage = () => {
             setIndicador(indData);
             setVariables(varsData);
             setPeriodos(periodsData);
-
-            // Auto-select type if only one available
-            if (indData.periodicidad) {
-                setSelectedType(indData.periodicidad);
-            }
         } catch (error) {
             console.error("Error loading data", error);
             setAlert({ type: 'danger', text: 'Error al cargar información del indicador.' });
