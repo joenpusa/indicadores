@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ConfirmProvider } from './context/ConfirmContext';
 import PrivateRoute from './routes/PrivateRoute';
+import AdminRoute from './routes/AdminRoute';
 import LoginPage from './modules/auth/LoginPage';
 import DashboardPage from './modules/dashboard/DashboardPage';
 import MainLayout from './components/layout/MainLayout';
@@ -34,16 +35,20 @@ function App() {
                 <Route element={<MainLayout />}>
                   <Route index element={<DashboardPage />} />
                   {/* Add more private routes here */}
-                  <Route path="users" element={<UsersPage />} />
                   <Route path="indicadores" element={<IndicadoresPage />} />
                   <Route path="indicadores/:id/variables" element={<VariablesPage />} />
                   <Route path="indicadores/:id/visualizacion" element={<VisualizacionPage />} />
                   <Route path="indicadores/:id/carga" element={<CargaDatosPage />} />
                   <Route path="indicadores/:id/data" element={<IndicadorDataPage />} />
-                  <Route path="settings/secretarias" element={<SecretariasPage />} />
-                  <Route path="settings/municipios" element={<MunicipiosPage />} />
-                  <Route path="roles" element={<RolesPage />} />
-                  <Route path="settings" element={<h2>Settings Module placeholder</h2>} />
+
+                  {/* Admin-only routes */}
+                  <Route element={<AdminRoute />}>
+                    <Route path="users" element={<UsersPage />} />
+                    <Route path="roles" element={<RolesPage />} />
+                    <Route path="settings/secretarias" element={<SecretariasPage />} />
+                    <Route path="settings/municipios" element={<MunicipiosPage />} />
+                    <Route path="settings" element={<h2>Settings Module placeholder</h2>} />
+                  </Route>
                 </Route>
               </Route>
             </Routes>

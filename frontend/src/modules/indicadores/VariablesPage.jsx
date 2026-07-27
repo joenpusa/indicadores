@@ -3,10 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Card, Form, Badge, Spinner, Row, Col, Alert, FloatingLabel, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { FaArrowLeft, FaPlus, FaTrash, FaEdit, FaSave, FaTimes, FaInfoCircle, FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import indicadoresService from '../../services/indicadoresService';
+import { useAuth } from '../../context/AuthContext';
 
 const VariablesPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const canEdit = user && (user.rol_id === 1 || user.role === 1 || user.tipo_permiso === 'editar');
     const [indicador, setIndicador] = useState(null);
     const [variables, setVariables] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -136,6 +139,20 @@ const VariablesPage = () => {
 
     if (loading) return <div className="text-center mt-5"><Spinner animation="border" /></div>;
     if (!indicador) return <Alert variant="warning" className="m-4">Indicador no encontrado</Alert>;
+    if (!canEdit) {
+        return (
+            <div className="container-fluid mt-4">
+                <Alert variant="danger" className="p-4 text-center shadow-sm">
+                    <h4 className="alert-heading">Acceso Restringido</h4>
+                    <p>Su rol actual es de <strong>solo lectura</strong>. No tiene permisos para definir o modificar variables de indicadores.</p>
+                    <hr />
+                    <Button variant="outline-danger" onClick={() => navigate(`/dashboard/indicadores/${id}/data`)}>
+                        Volver a Visualización de Datos
+                    </Button>
+                </Alert>
+            </div>
+        );
+    }
 
     return (
         <div className="container-fluid">

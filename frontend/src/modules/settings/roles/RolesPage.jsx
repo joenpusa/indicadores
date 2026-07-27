@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button, Modal, Form, OverlayTrigger, Tooltip, Spinner, Badge, Alert } from 'react-bootstrap';
 import { FaPlus, FaEdit, FaTrash, FaUserShield } from 'react-icons/fa';
 import rolesService from '@/services/rolesService';
+import TableSecretarias from '../secretarias/TableSecretarias';
 import { useToast } from '@/context/ToastContext';
 import { useConfirm } from '@/context/ConfirmContext';
 
@@ -15,7 +16,7 @@ const RolesPage = () => {
 
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [formData, setFormData] = useState({ nombre_rol: '' });
+    const [formData, setFormData] = useState({ nombre_rol: '', tipo_permiso: 'consultar', id_secretaria: '', selectedSecretaria: null });
     const [formError, setFormError] = useState(null);
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -91,10 +92,15 @@ const RolesPage = () => {
     const handleShow = (rol = null) => {
         if (rol) {
             setEditingId(rol.rol_id);
-            setFormData({ nombre_rol: rol.nombre_rol });
+            setFormData({ 
+                nombre_rol: rol.nombre_rol, 
+                tipo_permiso: rol.tipo_permiso || 'consultar', 
+                id_secretaria: rol.id_secretaria || '',
+                selectedSecretaria: rol.id_secretaria ? { id_secretaria: rol.id_secretaria, nombre: rol.nombre_secretaria } : null 
+            });
         } else {
             setEditingId(null);
-            setFormData({ nombre_rol: '' });
+            setFormData({ nombre_rol: '', tipo_permiso: 'consultar', id_secretaria: '', selectedSecretaria: null });
         }
         setFormError(null);
         setShowModal(true);
@@ -108,6 +114,11 @@ const RolesPage = () => {
 
         if (!formData.nombre_rol.trim()) {
             setFormError('El nombre del rol es obligatorio.');
+            return;
+        }
+
+        if (editingId !== 1 && !formData.id_secretaria) {
+            setFormError('Debe asignar una secretaría al rol.');
             return;
         }
 
@@ -191,7 +202,17 @@ const RolesPage = () => {
                                         <div className="bg-light p-3 rounded-circle text-warning">
                                             <FaUserShield size={24} />
                                         </div>
-                                        <h5 className="card-title mb-0">{rol.nombre_rol}</h5>
+                                        <div>
+                                            <h5 className="card-title mb-1">{rol.nombre_rol}</h5>
+                                            <div className="d-flex flex-wrap gap-2">
+                                                <Badge bg={rol.rol_id === 1 ? "dark" : "info"}>
+                                                    {rol.nombre_secretaria || (rol.rol_id === 1 ? 'Global (Todas las secretarías)' : 'Sin secretaría')}
+                                                </Badge>
+                                                <Badge bg={rol.tipo_permiso === 'editar' ? "success" : "secondary"}>
+                                                    {rol.tipo_permiso === 'editar' ? 'Puede editar' : 'Puede consultar'}
+                                                </Badge>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div className="d-flex gap-2">
                                         <Button
@@ -237,16 +258,67 @@ const RolesPage = () => {
                                 onChange={(e) => setFormData({ ...formData, nombre_rol: e.target.value })}
                                 autoFocus
                                 className={formError ? 'is-invalid' : ''}
+                                disabled={editingId === 1}
                             />
                             <label htmlFor="floatingNombreRol">
                                 Nombre del Rol <span className="text-danger">*</span>
                             </label>
                         </div>
-                        <div className="d-flex justify-content-end gap-2">
+
+                        {editingId !== 1 ? (
+                            <>
+                                <div className="mb-3">
+                                    <Form.Label className="fw-bold">Tipo de Permiso <span className="text-danger">*</span></Form.Label>
+                                    <div className="d-flex gap-4 p-2 border rounded bg-light">
+                                        <Form.Check
+                                            type="radio"
+                                            id="permiso-consultar"
+                                            name="tipo_permiso"
+                                            label="Puede consultar (Lectura)"
+                                            value="consultar"
+                                            checked={formData.tipo_permiso === 'consultar'}
+                                            onChange={(e) => setFormData({ ...formData, tipo_permiso: e.target.value })}
+                                        />
+                                        <Form.Check
+                                            type="radio"
+                                            id="permiso-editar"
+                                            name="tipo_permiso"
+                                            label="Puede editar (Lectura y Escritura)"
+                                            value="editar"
+                                            checked={formData.tipo_permiso === 'editar'}
+                                            onChange={(e) => setFormData({ ...formData, tipo_permiso: e.target.value })}
+                                        />
+                                    </div>
+                                    <Form.Text className="text-muted">
+                                        Si selecciona "Puede consultar", el usuario solo podrá ver los datos y gráficos sin realizar modificaciones.
+                                    </Form.Text>
+                                </div>
+
+                                <div className="mb-3">
+                                    <TableSecretarias
+                                        selectedSecretaria={formData.selectedSecretaria}
+                                        onSecretariaChange={(sec) => setFormData({ 
+                                            ...formData, 
+                                            selectedSecretaria: sec, 
+                                            id_secretaria: sec ? sec.id_secretaria : '' 
+                                        })}
+                                    />
+                                    <Form.Text className="text-muted">
+                                        El usuario solo podrá visualizar y editar los indicadores de la secretaría seleccionada.
+                                    </Form.Text>
+                                </div>
+                            </>
+                        ) : (
+                            <Alert variant="info" className="mt-3">
+                                El rol de <strong>Administrador</strong> tiene permisos globales de edición sobre todas las secretarías y no puede ser restringido.
+                            </Alert>
+                        )}
+
+                        <div className="d-flex justify-content-end gap-2 mt-4">
                             <Button variant="secondary" onClick={handleClose}>
                                 Cancelar
                             </Button>
-                            <Button variant="primary" type="submit">
+                            <Button variant="primary" type="submit" disabled={editingId === 1}>
                                 {editingId ? 'Guardar Cambios' : 'Crear Rol'}
                             </Button>
                         </div>

@@ -5,12 +5,15 @@ import { FaArrowLeft, FaTable, FaTrash } from 'react-icons/fa';
 import indicadoresService from '../../services/indicadoresService';
 import { useConfirm } from '../../context/ConfirmContext';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 
 const IndicadorDataPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { confirm } = useConfirm();
     const { success, error: showError } = useToast();
+    const { user } = useAuth();
+    const canEdit = user && (user.rol_id === 1 || user.role === 1 || user.tipo_permiso === 'editar');
 
     const [indicador, setIndicador] = useState(null);
     const [variables, setVariables] = useState([]);
@@ -93,20 +96,22 @@ const IndicadorDataPage = () => {
                 <Card.Body>
                     <div className="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <h5 className="m-0"><FaTable className="me-2 text-primary" />Registros Cargados ({registros.length})</h5>
-                        <div className="d-flex gap-2">
-                            <Button 
-                                variant="outline-danger" 
-                                size="sm" 
-                                onClick={handleDeleteAll} 
-                                disabled={registros.length === 0}
-                                className="d-flex align-items-center gap-1"
-                            >
-                                <FaTrash size={12} /> Eliminar Todos los Datos
-                            </Button>
-                            <Button variant="outline-success" size="sm" onClick={() => navigate(`/dashboard/indicadores/${id}/carga`)}>
-                                Cargar Nuevos Datos
-                            </Button>
-                        </div>
+                        {canEdit && (
+                            <div className="d-flex gap-2">
+                                <Button 
+                                    variant="outline-danger" 
+                                    size="sm" 
+                                    onClick={handleDeleteAll} 
+                                    disabled={registros.length === 0}
+                                    className="d-flex align-items-center gap-1"
+                                >
+                                    <FaTrash size={12} /> Eliminar Todos los Datos
+                                </Button>
+                                <Button variant="outline-success" size="sm" onClick={() => navigate(`/dashboard/indicadores/${id}/carga`)}>
+                                    Cargar Nuevos Datos
+                                </Button>
+                            </div>
+                        )}
                     </div>
 
                     <div className="table-responsive">
@@ -120,7 +125,7 @@ const IndicadorDataPage = () => {
                                         <th key={v.id_variable}>{v.nombre} <small className="text-muted fw-normal">({v.unidad})</small></th>
                                     ))}
                                     <th>Descripción</th>
-                                    <th style={{ width: '50px' }}>Acciones</th>
+                                    {canEdit && <th style={{ width: '50px' }}>Acciones</th>}
                                 </tr>
                             </thead>
                             <tbody>
@@ -134,21 +139,23 @@ const IndicadorDataPage = () => {
                                                 <td key={v.id_variable}>{row.valores ? row.valores[v.id_variable] : '-'}</td>
                                             ))}
                                             <td className="small text-muted">{row.descripcion}</td>
-                                            <td className="text-center">
-                                                <Button
-                                                    variant="outline-danger"
-                                                    size="sm"
-                                                    className="p-1"
-                                                    onClick={() => handleDelete(row.id_registro)}
-                                                >
-                                                    <FaTrash size={12} />
-                                                </Button>
-                                            </td>
+                                            {canEdit && (
+                                                <td className="text-center">
+                                                    <Button
+                                                        variant="outline-danger"
+                                                        size="sm"
+                                                        className="p-1"
+                                                        onClick={() => handleDelete(row.id_registro)}
+                                                    >
+                                                        <FaTrash size={12} />
+                                                    </Button>
+                                                </td>
+                                            )}
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={5 + variables.length} className="text-center py-4 text-muted">
+                                        <td colSpan={canEdit ? 6 + variables.length : 5 + variables.length} className="text-center py-4 text-muted">
                                             No hay registros cargados aún.
                                         </td>
                                     </tr>

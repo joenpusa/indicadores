@@ -6,7 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
+    const isAdmin = user && (user.rol_id === 1 || user.role === 1);
     const [isConfigOpen, setIsConfigOpen] = useState(false);
     const [isUsersOpen, setIsUsersOpen] = useState(false);
 
@@ -62,50 +63,54 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                         <FaMapMarkedAlt className={`${isCollapsed ? 'fs-4' : 'me-2 fs-5'}`} /> {!isCollapsed && 'Indicadores'}
                     </NavLink>
                 </Nav.Item>
-                <Nav.Item>
-                    <div
-                        className={`nav-link text-white sidebar-link d-flex align-items-center justify-content-between ${isCollapsed ? 'justify-content-center p-2' : ''}`}
-                        onClick={toggleUsers}
-                        style={{ cursor: 'pointer' }}
-                    >
-                        <div className={`d-flex align-items-center ${isCollapsed ? 'justify-content-center' : ''}`}>
-                            <FaUsers className={`${isCollapsed ? 'fs-4' : 'me-2 fs-5'}`} /> {!isCollapsed && 'Usuarios'}
-                        </div>
-                        {!isCollapsed && (isUsersOpen ? <FaAngleDown /> : <FaAngleRight />)}
-                    </div>
-                    {isUsersOpen && !isCollapsed && (
-                        <div className="ms-4 mt-1">
-                            <NavLink to="/dashboard/users" className="nav-link text-white sidebar-link py-1 d-flex align-items-center">
-                                <FaUser className="me-2" /> Usuarios
-                            </NavLink>
-                            <NavLink to="/dashboard/roles" className="nav-link text-white sidebar-link py-1 d-flex align-items-center">
-                                <FaUserShield className="me-2" /> Roles
-                            </NavLink>
-                        </div>
-                    )}
-                </Nav.Item>
-                <Nav.Item>
-                    <div
-                        className={`nav-link text-white sidebar-link d-flex align-items-center justify-content-between ${isCollapsed ? 'justify-content-center p-2' : ''}`}
-                        onClick={toggleConfig}
-                        style={{ cursor: 'pointer' }}
-                    >
-                        <div className={`d-flex align-items-center ${isCollapsed ? 'justify-content-center' : ''}`}>
-                            <FaCog className={`${isCollapsed ? 'fs-4' : 'me-2 fs-5'}`} /> {!isCollapsed && 'Configuración'}
-                        </div>
-                        {!isCollapsed && (isConfigOpen ? <FaAngleDown /> : <FaAngleRight />)}
-                    </div>
-                    {isConfigOpen && !isCollapsed && (
-                        <div className="ms-4 mt-1">
-                            <NavLink to="/dashboard/settings/municipios" className="nav-link text-white sidebar-link py-1 d-flex align-items-center">
-                                <FaCity className="me-2" /> Municipios
-                            </NavLink>
-                            <NavLink to="/dashboard/settings/secretarias" className="nav-link text-white sidebar-link py-1 d-flex align-items-center">
-                                <FaBuilding className="me-2" /> Secretarías
-                            </NavLink>
-                        </div>
-                    )}
-                </Nav.Item>
+                {isAdmin && (
+                    <>
+                        <Nav.Item>
+                            <div
+                                className={`nav-link text-white sidebar-link d-flex align-items-center justify-content-between ${isCollapsed ? 'justify-content-center p-2' : ''}`}
+                                onClick={toggleUsers}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                <div className={`d-flex align-items-center ${isCollapsed ? 'justify-content-center' : ''}`}>
+                                    <FaUsers className={`${isCollapsed ? 'fs-4' : 'me-2 fs-5'}`} /> {!isCollapsed && 'Usuarios'}
+                                </div>
+                                {!isCollapsed && (isUsersOpen ? <FaAngleDown /> : <FaAngleRight />)}
+                            </div>
+                            {isUsersOpen && !isCollapsed && (
+                                <div className="ms-4 mt-1">
+                                    <NavLink to="/dashboard/users" className="nav-link text-white sidebar-link py-1 d-flex align-items-center">
+                                        <FaUser className="me-2" /> Usuarios
+                                    </NavLink>
+                                    <NavLink to="/dashboard/roles" className="nav-link text-white sidebar-link py-1 d-flex align-items-center">
+                                        <FaUserShield className="me-2" /> Roles
+                                    </NavLink>
+                                </div>
+                            )}
+                        </Nav.Item>
+                        <Nav.Item>
+                            <div
+                                className={`nav-link text-white sidebar-link d-flex align-items-center justify-content-between ${isCollapsed ? 'justify-content-center p-2' : ''}`}
+                                onClick={toggleConfig}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                <div className={`d-flex align-items-center ${isCollapsed ? 'justify-content-center' : ''}`}>
+                                    <FaCog className={`${isCollapsed ? 'fs-4' : 'me-2 fs-5'}`} /> {!isCollapsed && 'Configuración'}
+                                </div>
+                                {!isCollapsed && (isConfigOpen ? <FaAngleDown /> : <FaAngleRight />)}
+                            </div>
+                            {isConfigOpen && !isCollapsed && (
+                                <div className="ms-4 mt-1">
+                                    <NavLink to="/dashboard/settings/municipios" className="nav-link text-white sidebar-link py-1 d-flex align-items-center">
+                                        <FaCity className="me-2" /> Municipios
+                                    </NavLink>
+                                    <NavLink to="/dashboard/settings/secretarias" className="nav-link text-white sidebar-link py-1 d-flex align-items-center">
+                                        <FaBuilding className="me-2" /> Secretarías
+                                    </NavLink>
+                                </div>
+                            )}
+                        </Nav.Item>
+                    </>
+                )}
             </Nav>
             <hr />
             <div>

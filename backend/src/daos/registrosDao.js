@@ -10,6 +10,11 @@ class RegistrosDAO {
         return result.insertId;
     }
 
+    static async getById(id) {
+        const [rows] = await pool.query('SELECT * FROM indicador_registros WHERE id_registro = ?', [id]);
+        return rows[0];
+    }
+
     static async delete(id) {
         const [result] = await pool.query('DELETE FROM indicador_registros WHERE id_registro = ?', [id]);
         return result.affectedRows;

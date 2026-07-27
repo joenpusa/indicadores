@@ -4,9 +4,13 @@ import { Button, Form, FormControl, InputGroup, Card, Badge, Spinner, Alert, Ove
 import { FaPlus, FaSearch, FaEdit, FaDatabase, FaChartBar, FaFilter, FaInfoCircle, FaUpload, FaTable } from 'react-icons/fa';
 import indicadoresService from '../../services/indicadoresService';
 import IndicadorForm from './components/IndicadorForm';
+import { useAuth } from '../../context/AuthContext';
 
 const IndicadoresPage = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const canEdit = user && (user.rol_id === 1 || user.role === 1 || user.tipo_permiso === 'editar');
+
     const [indicadores, setIndicadores] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -89,9 +93,11 @@ const IndicadoresPage = () => {
 
             <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <h2>Indicadores</h2>
-                <Button variant="primary" onClick={handleCreate}>
-                    <FaPlus className="me-2" /> Nuevo Indicador
-                </Button>
+                {canEdit && (
+                    <Button variant="primary" onClick={handleCreate}>
+                        <FaPlus className="me-2" /> Nuevo Indicador
+                    </Button>
+                )}
             </div>
 
             <div className="card shadow-sm border-0 mb-4">
@@ -159,22 +165,26 @@ const IndicadoresPage = () => {
                                     </p>
 
                                     <div className="d-flex justify-content-between pt-3 border-top">
-                                        <OverlayTrigger placement="top" overlay={<Tooltip>Editar Indicador</Tooltip>}>
-                                            <Button variant="outline-primary" size="sm" onClick={() => handleEdit(indicador)}>
-                                                <FaEdit />
-                                            </Button>
-                                        </OverlayTrigger>
-
-                                        <div className="d-flex gap-2">
-                                            <OverlayTrigger placement="top" overlay={<Tooltip>Gestionar Variables</Tooltip>}>
-                                                <Button
-                                                    variant="outline-secondary"
-                                                    size="sm"
-                                                    onClick={() => navigate(`/dashboard/indicadores/${indicador.id_indicador}/variables`)}
-                                                >
-                                                    <FaDatabase />
+                                        {canEdit ? (
+                                            <OverlayTrigger placement="top" overlay={<Tooltip>Editar Indicador</Tooltip>}>
+                                                <Button variant="outline-primary" size="sm" onClick={() => handleEdit(indicador)}>
+                                                    <FaEdit />
                                                 </Button>
                                             </OverlayTrigger>
+                                        ) : <div></div>}
+
+                                        <div className="d-flex gap-2">
+                                            {canEdit && (
+                                                <OverlayTrigger placement="top" overlay={<Tooltip>Gestionar Variables</Tooltip>}>
+                                                    <Button
+                                                        variant="outline-secondary"
+                                                        size="sm"
+                                                        onClick={() => navigate(`/dashboard/indicadores/${indicador.id_indicador}/variables`)}
+                                                    >
+                                                        <FaDatabase />
+                                                    </Button>
+                                                </OverlayTrigger>
+                                            )}
                                             <OverlayTrigger placement="top" overlay={<Tooltip>Ver Datos</Tooltip>}>
                                                 <Button
                                                     variant="outline-primary"
@@ -184,24 +194,28 @@ const IndicadoresPage = () => {
                                                     <FaTable />
                                                 </Button>
                                             </OverlayTrigger>
-                                            <OverlayTrigger placement="top" overlay={<Tooltip>Configurar Visualización</Tooltip>}>
-                                                <Button
-                                                    variant="outline-info"
-                                                    size="sm"
-                                                    onClick={() => navigate(`/dashboard/indicadores/${indicador.id_indicador}/visualizacion`)}
-                                                >
-                                                    <FaChartBar />
-                                                </Button>
-                                            </OverlayTrigger>
-                                            <OverlayTrigger placement="top" overlay={<Tooltip>Cargar Datos</Tooltip>}>
-                                                <Button
-                                                    variant="outline-success"
-                                                    size="sm"
-                                                    onClick={() => navigate(`/dashboard/indicadores/${indicador.id_indicador}/carga`)}
-                                                >
-                                                    <FaUpload />
-                                                </Button>
-                                            </OverlayTrigger>
+                                            {canEdit && (
+                                                <>
+                                                    <OverlayTrigger placement="top" overlay={<Tooltip>Configurar Visualización</Tooltip>}>
+                                                        <Button
+                                                            variant="outline-info"
+                                                            size="sm"
+                                                            onClick={() => navigate(`/dashboard/indicadores/${indicador.id_indicador}/visualizacion`)}
+                                                        >
+                                                            <FaChartBar />
+                                                        </Button>
+                                                    </OverlayTrigger>
+                                                    <OverlayTrigger placement="top" overlay={<Tooltip>Cargar Datos</Tooltip>}>
+                                                        <Button
+                                                            variant="outline-success"
+                                                            size="sm"
+                                                            onClick={() => navigate(`/dashboard/indicadores/${indicador.id_indicador}/carga`)}
+                                                        >
+                                                            <FaUpload />
+                                                        </Button>
+                                                    </OverlayTrigger>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -218,9 +232,11 @@ const IndicadoresPage = () => {
                     </div>
                     <h4>Aún no tienes indicadores creados.</h4>
                     <p className="text-muted">Crea un indicador para comenzar a registrar y analizar información.</p>
-                    <Button variant="primary" onClick={handleCreate} className="mt-2">
-                        <FaPlus className="me-2" /> Crear primer indicador
-                    </Button>
+                    {canEdit && (
+                        <Button variant="primary" onClick={handleCreate} className="mt-2">
+                            <FaPlus className="me-2" /> Crear primer indicador
+                        </Button>
+                    )}
                 </div>
             )}
 

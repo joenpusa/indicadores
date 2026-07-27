@@ -6,6 +6,11 @@ class VariablesModel {
         return await VariablesDAO.getByIndicador(idIndicador);
     }
 
+    static async getVariableById(id) {
+        if (!id) throw new Error('ID es requerido');
+        return await VariablesDAO.getById(id);
+    }
+
     static async createVariable(data) {
         if (!data.id_indicador) throw new Error('El ID del indicador es obligatorio');
         if (!data.nombre) throw new Error('El nombre de la variable es obligatorio');

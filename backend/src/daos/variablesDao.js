@@ -9,6 +9,11 @@ class VariablesDAO {
         return rows;
     }
 
+    static async getById(id) {
+        const [rows] = await pool.query('SELECT * FROM indicador_variables WHERE id_variable = ?', [id]);
+        return rows[0];
+    }
+
     static async create(data) {
         const { id_indicador, nombre, tipo, unidad, es_dimension, es_obligatoria, orden } = data;
         const [result] = await pool.query(

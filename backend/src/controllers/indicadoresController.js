@@ -9,6 +9,22 @@ const ValoresDAO = require('../daos/valoresDao');
 const xlsx = require('xlsx');
 
 class IndicadoresController {
+    static async checkMutationPermission(req, idIndicador = null) {
+        if (!req.user) throw new Error('Usuario no autenticado.');
+        if (parseInt(req.user.role) === 1 || parseInt(req.user.rol_id) === 1) return true; // Administrador tiene permiso global
+        if (req.user.tipo_permiso !== 'editar') {
+            throw new Error('Su rol sólo tiene permisos de consulta, no puede realizar modificaciones.');
+        }
+        if (idIndicador) {
+            const indicador = await IndicadoresModel.getIndicadorById(idIndicador);
+            if (!indicador) throw new Error('Indicador no encontrado.');
+            if (req.user.id_secretaria && parseInt(indicador.id_secretaria) !== parseInt(req.user.id_secretaria)) {
+                throw new Error('No tiene permisos sobre los indicadores de esta secretaría.');
+            }
+        }
+        return true;
+    }
+
     // --- Data Loading ---
 
     // Download Excel Template
@@ -48,12 +64,9 @@ class IndicadoresController {
 
     // Upload Data (Manual or File)
     static async cargarDatos(req, res) {
-        // If file is present, it's bulk upload
-        // If req.body has data, it's manual
-        // Note: Manual upload might also use this endpoint via JSON body
-
         try {
             const { id } = req.params;
+            await IndicadoresController.checkMutationPermission(req, id);
 
             if (req.file) {
                 // Bulk Upload Logic
@@ -275,7 +288,10 @@ class IndicadoresController {
     // --- Indicadores ---
     static async listarIndicadores(req, res) {
         try {
-            const { q, active, page, limit, id_secretaria, tipo_indicador } = req.query;
+            let { q, active, page, limit, id_secretaria, tipo_indicador } = req.query;
+            if (req.user && parseInt(req.user.role) !== 1 && parseInt(req.user.rol_id) !== 1 && req.user.id_secretaria) {
+                id_secretaria = req.user.id_secretaria;
+            }
             const result = await IndicadoresModel.getAllIndicadores({ q, active, page, limit, id_secretaria, tipo_indicador });
             res.json(result);
         } catch (error) {
@@ -285,6 +301,10 @@ class IndicadoresController {
 
     static async crearIndicador(req, res) {
         try {
+            await IndicadoresController.checkMutationPermission(req);
+            if (req.user && (parseInt(req.user.role) !== 1 && parseInt(req.user.rol_id) !== 1) && req.user.id_secretaria) {
+                req.body.id_secretaria = req.user.id_secretaria;
+            }
             const id = await IndicadoresModel.createIndicador(req.body);
             res.status(201).json({ message: 'Indicador creado', id });
         } catch (error) {
@@ -295,6 +315,7 @@ class IndicadoresController {
     static async actualizarIndicador(req, res) {
         try {
             const { id } = req.params;
+            await IndicadoresController.checkMutationPermission(req, id);
             await IndicadoresModel.updateIndicador(id, req.body);
             res.json({ message: 'Indicador actualizado' });
         } catch (error) {
@@ -327,6 +348,7 @@ class IndicadoresController {
     static async crearVariable(req, res) {
         try {
             const { id } = req.params; // id_indicador
+            await IndicadoresController.checkMutationPermission(req, id);
             const variableId = await VariablesModel.createVariable({ ...req.body, id_indicador: id });
             res.status(201).json({ message: 'Variable creada', id: variableId });
         } catch (error) {
@@ -336,10 +358,10 @@ class IndicadoresController {
 
     static async actualizarVariable(req, res) {
         try {
-            // Route: /variables/:id ? Or /indicadores/:idIndicador/variables/:idVariable
-            // Usually update needs generic ID.
-            // If route is /api/indicadores/variables/:id
             const { id } = req.params;
+            const variable = await VariablesModel.getVariableById(id);
+            if (variable) await IndicadoresController.checkMutationPermission(req, variable.id_indicador);
+            else await IndicadoresController.checkMutationPermission(req);
             await VariablesModel.updateVariable(id, req.body);
             res.json({ message: 'Variable actualizada' });
         } catch (error) {
@@ -350,6 +372,9 @@ class IndicadoresController {
     static async eliminarVariable(req, res) {
         try {
             const { id } = req.params;
+            const variable = await VariablesModel.getVariableById(id);
+            if (variable) await IndicadoresController.checkMutationPermission(req, variable.id_indicador);
+            else await IndicadoresController.checkMutationPermission(req);
             await VariablesModel.deleteVariable(id);
             res.json({ message: 'Variable eliminada' });
         } catch (error) {
@@ -359,6 +384,7 @@ class IndicadoresController {
 
     static async reordenarVariables(req, res) {
         try {
+            await IndicadoresController.checkMutationPermission(req);
             const variables = req.body;
             await VariablesModel.reorderVariables(variables);
             res.json({ message: 'Variables reordenadas' });
@@ -381,6 +407,7 @@ class IndicadoresController {
     static async guardarConfiguracion(req, res) {
         try {
             const { id } = req.params; // id_indicador
+            await IndicadoresController.checkMutationPermission(req, id);
             await GraficosModel.updateConfigByIndicador(id, req.body);
             res.json({ message: 'Configuración guardada' });
         } catch (error) {
@@ -406,6 +433,9 @@ class IndicadoresController {
     static async eliminarRegistro(req, res) {
         try {
             const { idRegistro } = req.params;
+            const registro = await RegistrosDAO.getById(idRegistro);
+            if (registro) await IndicadoresController.checkMutationPermission(req, registro.id_indicador);
+            else await IndicadoresController.checkMutationPermission(req);
             const deleted = await RegistrosDAO.delete(idRegistro);
             if (deleted === 0) return res.status(404).json({ message: 'Registro no encontrado' });
             res.json({ message: 'Registro eliminado correctamente' });
@@ -418,6 +448,7 @@ class IndicadoresController {
     static async eliminarTodosRegistros(req, res) {
         try {
             const { id } = req.params; // id_indicador
+            await IndicadoresController.checkMutationPermission(req, id);
             const deleted = await RegistrosDAO.deleteByIndicador(id);
             res.json({ message: `Se eliminaron ${deleted} registros correctamente`, deleted });
         } catch (error) {

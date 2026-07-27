@@ -40,7 +40,11 @@ class AuthController {
                         id: user.id_usuario,
                         email: user.email,
                         nombre: user.nombre,
-                        rol_id: user.rol_id
+                        rol_id: user.rol_id,
+                        nombre_rol: user.nombre_rol,
+                        tipo_permiso: user.tipo_permiso,
+                        id_secretaria: user.id_secretaria,
+                        nombre_secretaria: user.nombre_secretaria
                     }
                 }
             });

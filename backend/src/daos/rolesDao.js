@@ -2,13 +2,13 @@ const pool = require('../config/db');
 
 class RolesDAO {
     static async getAll(filters = {}) {
-        let sql = 'SELECT * FROM roles';
-        let countSql = 'SELECT COUNT(*) as total FROM roles';
+        let sql = 'SELECT r.*, s.nombre as nombre_secretaria FROM roles r LEFT JOIN secretarias s ON r.id_secretaria = s.id_secretaria';
+        let countSql = 'SELECT COUNT(*) as total FROM roles r';
         const params = [];
         const whereClauses = [];
 
         if (filters.q) {
-            whereClauses.push('nombre_rol LIKE ?');
+            whereClauses.push('r.nombre_rol LIKE ?');
             params.push(`%${filters.q}%`);
         }
 
@@ -18,7 +18,7 @@ class RolesDAO {
             countSql += whereClause;
         }
 
-        sql += ' ORDER BY nombre_rol ASC';
+        sql += ' ORDER BY r.nombre_rol ASC';
 
         // Pagination parameters
         const page = parseInt(filters.page) || 1;
@@ -46,30 +46,30 @@ class RolesDAO {
     }
 
     static async create(data) {
-        const { nombre_rol } = data;
-        const [result] = await pool.query('INSERT INTO roles (nombre_rol) VALUES (?)', [nombre_rol]);
+        const { nombre_rol, tipo_permiso, id_secretaria } = data;
+        const [result] = await pool.query(
+            'INSERT INTO roles (nombre_rol, tipo_permiso, id_secretaria) VALUES (?, ?, ?)',
+            [nombre_rol, tipo_permiso || 'consultar', id_secretaria || null]
+        );
         return result.insertId;
     }
 
     static async update(id, data) {
-        const { nombre_rol } = data;
-        await pool.query('UPDATE roles SET nombre_rol = ? WHERE rol_id = ?', [nombre_rol, id]);
+        const { nombre_rol, tipo_permiso, id_secretaria } = data;
+        await pool.query(
+            'UPDATE roles SET nombre_rol = ?, tipo_permiso = ?, id_secretaria = ? WHERE rol_id = ?',
+            [nombre_rol, tipo_permiso || 'consultar', id_secretaria || null, id]
+        );
         return true;
     }
 
     static async delete(id) {
-        // Warning: Deleting a role might have cascading effects? User just asked for CRUD.
-        // Secretarias does logical delete (es_activo = 0).
-        // Roles table has no `es_activo`. So we must perform potentially real delete.
-        // Or user expects update?
-        // "cree esta tabla... rol_id, nombre_rol" -> No active column.
-        // I will implement DELETE.
         await pool.query('DELETE FROM roles WHERE rol_id = ?', [id]);
         return true;
     }
 
     static async getById(id) {
-        const [rows] = await pool.query('SELECT * FROM roles WHERE rol_id = ?', [id]);
+        const [rows] = await pool.query('SELECT r.*, s.nombre as nombre_secretaria FROM roles r LEFT JOIN secretarias s ON r.id_secretaria = s.id_secretaria WHERE r.rol_id = ?', [id]);
         return rows[0];
     }
 }
