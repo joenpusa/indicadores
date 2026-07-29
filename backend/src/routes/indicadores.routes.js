@@ -12,6 +12,7 @@ router.get('/', optionalVerifyToken, IndicadoresController.listarIndicadores);
 router.post('/', verifyToken, IndicadoresController.crearIndicador);
 router.get('/:id', optionalVerifyToken, IndicadoresController.obtenerIndicador); // New endpoint for editing
 router.put('/:id', verifyToken, IndicadoresController.actualizarIndicador);
+router.delete('/:id', verifyToken, IndicadoresController.eliminarIndicador);
 
 // Variables
 router.get('/:id/variables', optionalVerifyToken, IndicadoresController.listarVariables);

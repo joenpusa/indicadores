@@ -323,6 +323,18 @@ class IndicadoresController {
         }
     }
 
+    static async eliminarIndicador(req, res) {
+        try {
+            const { id } = req.params;
+            await IndicadoresController.checkMutationPermission(req, id);
+            await IndicadoresModel.deleteIndicador(id);
+            res.json({ message: 'Indicador y todos sus datos asociados fueron eliminados' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: true, message: 'Error al eliminar el indicador', details: error.message });
+        }
+    }
+
     static async obtenerIndicador(req, res) {
         try {
             const { id } = req.params;

@@ -20,6 +20,11 @@ const update = async (id, data) => {
     return response.data;
 };
 
+const deleteIndicador = async (id) => {
+    const response = await api.delete(`/indicadores/${id}`);
+    return response.data;
+};
+
 // Variables
 const getVariables = async (idIndicador) => {
     const response = await api.get(`/indicadores/${idIndicador}/variables`);
@@ -135,7 +140,8 @@ const indicadoresService = {
     getRegistros,
     deleteRegistro,
     deleteAllRegistros,
-    getDashboardData
+    getDashboardData,
+    deleteIndicador
 };
 
 export default indicadoresService;

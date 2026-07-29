@@ -123,6 +123,36 @@ class IndicadoresDAO {
         return true;
     }
 
+    static async deleteCompleto(id) {
+        const connection = await pool.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // 1. Delete valores (via registros)
+            await connection.query('DELETE v FROM indicador_valores v JOIN indicador_registros r ON v.id_registro = r.id_registro WHERE r.id_indicador = ?', [id]);
+            
+            // 2. Delete registros
+            await connection.query('DELETE FROM indicador_registros WHERE id_indicador = ?', [id]);
+
+            // 3. Delete graficos config
+            await connection.query('DELETE FROM indicador_graficos WHERE id_indicador = ?', [id]);
+
+            // 4. Delete variables
+            await connection.query('DELETE FROM indicador_variables WHERE id_indicador = ?', [id]);
+
+            // 5. Delete indicator
+            await connection.query('DELETE FROM indicadores WHERE id_indicador = ?', [id]);
+
+            await connection.commit();
+            return true;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+    }
+
     static async getDashboardData(idIndicador, filters) {
         const { id_periodo, active } = filters;
 

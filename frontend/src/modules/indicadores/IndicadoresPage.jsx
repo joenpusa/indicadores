@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Form, FormControl, InputGroup, Card, Badge, Spinner, Alert, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { FaPlus, FaSearch, FaEdit, FaDatabase, FaChartBar, FaFilter, FaInfoCircle, FaUpload, FaTable } from 'react-icons/fa';
+import { Button, Form, FormControl, InputGroup, Card, Badge, Spinner, Alert, OverlayTrigger, Tooltip, Modal } from 'react-bootstrap';
+import { FaPlus, FaSearch, FaEdit, FaDatabase, FaChartBar, FaFilter, FaInfoCircle, FaUpload, FaTable, FaTrash } from 'react-icons/fa';
 import indicadoresService from '../../services/indicadoresService';
 import IndicadorForm from './components/IndicadorForm';
 import { useAuth } from '../../context/AuthContext';
@@ -17,6 +17,8 @@ const IndicadoresPage = () => {
     const [activeFilter, setActiveFilter] = useState('all'); // all, active, inactive
     const [showModal, setShowModal] = useState(false);
     const [selectedIndicador, setSelectedIndicador] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [indicadorToDelete, setIndicadorToDelete] = useState(null);
 
     useEffect(() => {
         fetchIndicadores();
@@ -47,6 +49,24 @@ const IndicadoresPage = () => {
     const handleSuccess = () => {
         setShowModal(false);
         fetchIndicadores();
+    };
+
+    const handleEliminarClick = (indicador) => {
+        setIndicadorToDelete(indicador);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!indicadorToDelete) return;
+        try {
+            await indicadoresService.deleteIndicador(indicadorToDelete.id_indicador);
+            setShowDeleteModal(false);
+            setIndicadorToDelete(null);
+            fetchIndicadores();
+        } catch (error) {
+            console.error("Error eliminando indicador:", error);
+            alert("Ocurrió un error al intentar eliminar el indicador.");
+        }
     };
 
     const filteredIndicadores = indicadores.filter(ind => {
@@ -166,11 +186,18 @@ const IndicadoresPage = () => {
 
                                     <div className="d-flex justify-content-between pt-3 border-top">
                                         {canEdit ? (
-                                            <OverlayTrigger placement="top" overlay={<Tooltip>Editar Indicador</Tooltip>}>
-                                                <Button variant="outline-primary" size="sm" onClick={() => handleEdit(indicador)}>
-                                                    <FaEdit />
-                                                </Button>
-                                            </OverlayTrigger>
+                                            <div className="d-flex gap-2">
+                                                <OverlayTrigger placement="top" overlay={<Tooltip>Editar Indicador</Tooltip>}>
+                                                    <Button variant="outline-primary" size="sm" onClick={() => handleEdit(indicador)}>
+                                                        <FaEdit />
+                                                    </Button>
+                                                </OverlayTrigger>
+                                                <OverlayTrigger placement="top" overlay={<Tooltip>Eliminar Indicador</Tooltip>}>
+                                                    <Button variant="outline-danger" size="sm" onClick={() => handleEliminarClick(indicador)}>
+                                                        <FaTrash />
+                                                    </Button>
+                                                </OverlayTrigger>
+                                            </div>
                                         ) : <div></div>}
 
                                         <div className="d-flex gap-2">
@@ -248,6 +275,30 @@ const IndicadoresPage = () => {
                     onSuccess={handleSuccess}
                 />
             )}
+
+            {/* Confirm Delete Modal */}
+            <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} backdrop="static">
+                <Modal.Header closeButton className="bg-danger text-white">
+                    <Modal.Title>Confirmar Eliminación</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>¿Está seguro que desea eliminar el indicador <strong>{indicadorToDelete?.nombre}</strong>?</p>
+                    <Alert variant="warning" className="mb-0">
+                        <div className="d-flex align-items-center gap-2">
+                            <FaTrash />
+                            <span>Se eliminará toda la información y datos asociados de forma permanente. Esta acción no se puede deshacer.</span>
+                        </div>
+                    </Alert>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+                        Cancelar
+                    </Button>
+                    <Button variant="danger" onClick={confirmDelete}>
+                        Eliminar
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 };

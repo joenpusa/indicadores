@@ -26,7 +26,7 @@ class IndicadoresModel {
 
     static async deleteIndicador(id) {
         if (!id) throw new Error('ID es requerido');
-        return await IndicadoresDAO.delete(id);
+        return await IndicadoresDAO.deleteCompleto(id);
     }
 
     static async getDashboardData(idIndicador, filters) {
