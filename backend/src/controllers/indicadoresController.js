@@ -108,8 +108,11 @@ class IndicadoresController {
                 return res.status(400).json({ message: `Para periodicidad ${tipo} se requiere especificar el periodo (número)` });
             }
 
+            // Normalizar numero a null si es un string vacío para evitar duplicar periodos anuales
+            const numValidado = (numero === '' || numero === undefined) ? null : numero;
+
             // Find or Create Period
-            const idPeriodo = await PeriodosModel.findOrCreate(tipo, anio, numero);
+            const idPeriodo = await PeriodosModel.findOrCreate(tipo, anio, numValidado);
 
             const idRegistro = await RegistrosDAO.create({
                 id_indicador: idIndicador,
@@ -207,6 +210,14 @@ class IndicadoresController {
                             anio = parseInt(match[1]);
                             numero = parseInt(match[2]);
                             if (numero >= 1 && numero <= 12) parsed = true;
+                        }
+                    } else if (tipoPeriodo === 'salud') {
+                        // Format: YYYY-MM (e.g. 2026-13)
+                        const match = periodoStr.match(/^(\d{4})-(\d{1,2})$/);
+                        if (match) {
+                            anio = parseInt(match[1]);
+                            numero = parseInt(match[2]);
+                            if (numero >= 1 && numero <= 13) parsed = true;
                         }
                     }
                 } catch (e) {

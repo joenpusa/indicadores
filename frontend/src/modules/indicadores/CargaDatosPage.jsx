@@ -84,6 +84,9 @@ const CargaDatosPage = () => {
             { value: 11, label: 'Noviembre' },
             { value: 12, label: 'Diciembre' },
         ];
+        if (tipo === 'salud') return Array.from({ length: 13 }, (_, i) => ({
+            value: i + 1, label: `Salud ${String(i + 1).padStart(2, '0')}`
+        }));
         return [];
     };
 
@@ -388,6 +391,7 @@ const CargaDatosPage = () => {
                                         <li>Semestral: 2024-S1, 2024-S2</li>
                                         <li>Trimestral: 2024-T1 ... 2024-T4</li>
                                         <li>Mensual: 2024-01 ... 2024-12</li>
+                                        <li>Periodo en Salud: 2024-01 ... 2024-13</li>
                                     </ul>
                                 </ul>
                             </p>

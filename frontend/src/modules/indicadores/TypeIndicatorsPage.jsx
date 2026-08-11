@@ -174,9 +174,25 @@ const TypeIndicatorsPage = () => {
         return m ? m.nombre : codigo;
     };
 
+    const formatPeriodo = (per) => {
+        if (!per) return '';
+        if (per.nombre) return per.nombre;
+        if (!per.numero) return per.anio;
+
+        const { tipo, anio, numero } = per;
+        if (tipo === 'semestral') return `${anio} - Semestre ${numero}`;
+        if (tipo === 'trimestral') return `${anio} - Trimestre ${numero}`;
+        if (tipo === 'mensual') {
+            const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            return `${anio} - ${meses[numero - 1] || 'Mes ' + numero}`;
+        }
+        if (tipo === 'salud') return `${anio} - Salud ${String(numero).padStart(2, '0')}`;
+        return `${anio} - ${numero}`;
+    };
+
     const getPeriodoName = (id) => {
         const p = periodosList.find(item => String(item.id_periodo) === String(id));
-        return p ? (p.nombre || p.anio) : id;
+        return p ? formatPeriodo(p) : id;
     };
 
     const getVariableName = (id) => {
@@ -331,7 +347,7 @@ const TypeIndicatorsPage = () => {
                                                 <option value="">Todos los periodos</option>
                                                 {periodosList.map(per => (
                                                     <option key={per.id_periodo} value={per.id_periodo}>
-                                                        {per.nombre || per.anio}
+                                                        {formatPeriodo(per)}
                                                     </option>
                                                 ))}
                                             </Form.Select>

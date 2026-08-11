@@ -169,6 +169,7 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
                                         <option value="semestral">Semestral</option>
                                         <option value="trimestral">Trimestral</option>
                                         <option value="mensual">Mensual</option>
+                                        <option value="salud">Periodo en Salud (13 periodos)</option>
                                     </Form.Select>
                                 </FloatingLabel>
                                 <Form.Text className="text-muted small">

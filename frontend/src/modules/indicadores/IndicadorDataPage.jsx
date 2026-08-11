@@ -74,6 +74,7 @@ const IndicadorDataPage = () => {
         if (r.tipo === 'mensual') return `${r.anio}-${String(r.numero).padStart(2, '0')}`;
         if (r.tipo === 'semestral') return `${r.anio}-S${r.numero}`;
         if (r.tipo === 'trimestral') return `${r.anio}-T${r.numero}`;
+        if (r.tipo === 'salud') return `${r.anio} - Salud ${String(r.numero).padStart(2, '0')}`;
         return `${r.anio} ${r.numero ? r.numero : ''}`;
     };
 

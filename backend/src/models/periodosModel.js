@@ -66,6 +66,20 @@ class PeriodosModel {
             const fmt = d => d.toISOString().split('T')[0];
             fecha_inicio = fmt(start);
             fecha_fin = fmt(end);
+        } else if (tipo === 'salud') {
+            // numero 1-13
+            const start = new Date(Date.UTC(anioInt, 0, 1));
+            start.setUTCDate(start.getUTCDate() + (numeroInt - 1) * 28);
+            
+            const end = new Date(Date.UTC(anioInt, 0, 1));
+            if (numeroInt === 13) {
+                end.setUTCMonth(11, 31); // Dec 31
+            } else {
+                end.setUTCDate(end.getUTCDate() + (numeroInt - 1) * 28 + 27);
+            }
+            const fmt = d => d.toISOString().split('T')[0];
+            fecha_inicio = fmt(start);
+            fecha_fin = fmt(end);
         }
 
         if (!fecha_inicio || !fecha_fin) {
