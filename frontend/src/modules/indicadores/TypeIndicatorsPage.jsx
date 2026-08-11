@@ -493,16 +493,16 @@ const TypeIndicatorsPage = () => {
                                                 <Spinner animation="border" variant="primary" />
                                                 <p className="text-muted mt-3 mb-0">Cargando visualizaciones estadísticas...</p>
                                             </div>
-                                        ) : !dashboardData || !dashboardData.charts || dashboardData.charts.length === 0 ? (
+                                        ) : (!dashboardData || ((!dashboardData.charts || dashboardData.charts.length === 0) && (!dashboardData.flatData || dashboardData.flatData.length === 0))) ? (
                                             <Alert variant="light" className="text-center border py-5 my-2 rounded-3">
                                                 <FaInfoCircle className="text-secondary fs-3 mb-3" />
                                                 <h6 className="fw-bold text-dark">No hay datos disponibles para graficar</h6>
                                                 <p className="text-muted small mb-0 max-w-md mx-auto">
-                                                    Este indicador aún no cuenta con registros cargados o no existen datos que coincidan con los filtros seleccionados actualmente.
+                                                    Los filtros actuales no devuelven registros, o el indicador seleccionado aún no tiene datos cargados.
                                                 </p>
                                             </Alert>
                                         ) : (
-                                            <DashboardCharts charts={dashboardData.charts} />
+                                            <DashboardCharts dashboardData={dashboardData} />
                                         )}
                                     </Card.Body>
                                 </Card>

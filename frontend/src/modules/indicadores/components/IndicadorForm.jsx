@@ -12,7 +12,8 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
         unidad_base: '',
         es_activo: true,
         periodicidad: '',
-        tipo_indicador: 'Disponibilidad'
+        tipo_indicador: 'Disponibilidad',
+        fuente_datos: 'agrupada'
     });
     // Store selected object for TableSecretarias
     const [selectedSecretaria, setSelectedSecretaria] = useState(null);
@@ -30,7 +31,8 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
                     unidad_base: indicador.unidad_base || '',
                     es_activo: indicador.es_activo === 1,
                     periodicidad: indicador.periodicidad || '',
-                    tipo_indicador: indicador.tipo_indicador || 'Disponibilidad'
+                    tipo_indicador: indicador.tipo_indicador || 'Disponibilidad',
+                    fuente_datos: indicador.fuente_datos || 'agrupada'
                 });
                 // If we have the name, we set it for display. If only ID is available, TableSecretarias might need fetching or just display ID (usually passed as object)
                 // Indicador object usually has nombre_secretaria from join.
@@ -46,7 +48,8 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
                     unidad_base: '',
                     es_activo: true,
                     periodicidad: '',
-                    tipo_indicador: 'Disponibilidad'
+                    tipo_indicador: 'Disponibilidad',
+                    fuente_datos: 'agrupada'
                 });
                 setSelectedSecretaria(null);
             }
@@ -206,6 +209,22 @@ const IndicadorForm = ({ show, indicador, onClose, onSuccess }) => {
                                     onChange={handleChange}
                                 />
                             </FloatingLabel>
+                            <div className="mb-3">
+                                <FloatingLabel controlId="floatingFuenteDatos" label="Fuente de Datos">
+                                    <Form.Select
+                                        name="fuente_datos"
+                                        value={formData.fuente_datos}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="agrupada">Agrupada (Estándar)</option>
+                                        <option value="detallada">Detallada (Microdatos)</option>
+                                    </Form.Select>
+                                </FloatingLabel>
+                                <Form.Text className="text-muted small">
+                                    Agrupada: Las filas suman valores (ej: poblacion = 100). Detallada: Las filas son registros individuales interactivos.
+                                </Form.Text>
+                            </div>
                         </Col>
                     </Row>
 

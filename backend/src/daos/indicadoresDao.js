@@ -76,10 +76,10 @@ class IndicadoresDAO {
     }
 
     static async create(data) {
-        const { id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad, tipo_indicador } = data;
+        const { id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad, tipo_indicador, fuente_datos } = data;
         const [result] = await pool.query(
-            'INSERT INTO indicadores (id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad, tipo_indicador) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad, tipo_indicador]
+            'INSERT INTO indicadores (id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad, tipo_indicador, fuente_datos) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [id_secretaria, nombre, descripcion, unidad_base, es_activo, periodicidad, tipo_indicador, fuente_datos || 'agrupada']
         );
         return result.insertId;
     }
@@ -95,6 +95,7 @@ class IndicadoresDAO {
         if (data.id_secretaria !== undefined) { fields.push('id_secretaria = ?'); params.push(data.id_secretaria); }
         if (data.periodicidad !== undefined) { fields.push('periodicidad = ?'); params.push(data.periodicidad); }
         if (data.tipo_indicador !== undefined) { fields.push('tipo_indicador = ?'); params.push(data.tipo_indicador); }
+        if (data.fuente_datos !== undefined) { fields.push('fuente_datos = ?'); params.push(data.fuente_datos); }
 
         if (fields.length === 0) return false;
 
@@ -156,6 +157,11 @@ class IndicadoresDAO {
     static async getDashboardData(idIndicador, filters) {
         const { id_periodo, active } = filters;
 
+        // 0. Fetch indicator to check fuente_datos
+        const [indRows] = await pool.query('SELECT fuente_datos FROM indicadores WHERE id_indicador = ?', [idIndicador]);
+        if (indRows.length === 0) throw new Error('Indicador no encontrado');
+        const fuente_datos = indRows[0].fuente_datos || 'agrupada';
+
         // 1. Get Map Data (Heatmap) - Sum of all numeric variables per municipality
         let mapSql = `
             SELECT 
@@ -188,21 +194,76 @@ class IndicadoresDAO {
             mapParams.push(filters.id_variable);
         }
 
-        // Add filter for active indicator if needed, but normally we are viewing a specific indicator.
-        // If "active" param refers to the indicator status, it's already checked in controller/model 
-        // before calling this (or irrelevant if we already have the ID).
-
         mapSql += ' GROUP BY m.id_municipio, m.codigo_municipio, m.nombre';
-
         const [mapRows] = await pool.query(mapSql, mapParams);
 
-        // 2. Get Dimensions (Only Text type)
+        if (fuente_datos === 'detallada') {
+            // Get all variables
+            const [variables] = await pool.query('SELECT * FROM indicador_variables WHERE id_indicador = ? ORDER BY orden ASC', [idIndicador]);
+            
+            // Get raw flat data for interactive pivot
+            let rawSql = `
+                SELECT 
+                    r.id_registro,
+                    m.nombre as municipio,
+                    p.anio, p.numero, p.tipo as tipo_periodo,
+                    v.id_variable,
+                    v.valor
+                FROM indicador_registros r
+                JOIN municipios m ON r.id_municipio = m.id_municipio
+                JOIN periodos p ON r.id_periodo = p.id_periodo
+                JOIN indicador_valores v ON r.id_registro = v.id_registro
+                WHERE r.id_indicador = ?
+            `;
+            const rawParams = [idIndicador];
+            if (id_periodo) {
+                rawSql += ' AND r.id_periodo = ?';
+                rawParams.push(id_periodo);
+            }
+            if (filters.id_municipio) {
+                rawSql += ' AND m.codigo_municipio = ?';
+                rawParams.push(filters.id_municipio);
+            }
+
+            const [rawRows] = await pool.query(rawSql, rawParams);
+            
+            const flatDataMap = new Map();
+            for (const row of rawRows) {
+                if (!flatDataMap.has(row.id_registro)) {
+                    let per = row.anio.toString();
+                    if (row.tipo_periodo === 'mensual') per = `${row.anio}-${String(row.numero).padStart(2, '0')}`;
+                    else if (row.tipo_periodo === 'semestral') per = `${row.anio}-S${row.numero}`;
+                    else if (row.tipo_periodo === 'trimestral') per = `${row.anio}-T${row.numero}`;
+                    else if (row.tipo_periodo === 'salud') per = `${row.anio} - Salud ${String(row.numero).padStart(2, '0')}`;
+
+                    flatDataMap.set(row.id_registro, {
+                        id_registro: row.id_registro,
+                        municipio: row.municipio,
+                        periodo: per
+                    });
+                }
+                const varDef = variables.find(v => v.id_variable === row.id_variable);
+                if (varDef) {
+                    let val = row.valor;
+                    if (varDef.tipo === 'numero') val = parseFloat(val) || 0;
+                    flatDataMap.get(row.id_registro)[varDef.nombre] = val;
+                }
+            }
+
+            return {
+                fuente_datos: 'detallada',
+                mapData: mapRows,
+                variables: variables,
+                flatData: Array.from(flatDataMap.values())
+            };
+        }
+
+        // Mode agrupada
         const [dimensions] = await pool.query(
             'SELECT * FROM indicador_variables WHERE id_indicador = ? AND es_dimension = 1 AND tipo = "texto" ORDER BY orden ASC',
             [idIndicador]
         );
 
-        // 3. Get Chart Data for each dimension
         const charts = [];
         for (const dim of dimensions) {
             let chartSql = `
@@ -249,7 +310,38 @@ class IndicadoresDAO {
             });
         }
 
+        if (charts.length === 0) {
+            // Default chart for aggregated if no text variables
+            let defSql = `
+                SELECT 
+                    m.nombre as name,
+                    SUM(v.valor) as value,
+                    var.unidad as unit
+                FROM indicador_registros r
+                JOIN municipios m ON r.id_municipio = m.id_municipio
+                JOIN indicador_valores v ON r.id_registro = v.id_registro
+                JOIN indicador_variables var ON v.id_variable = var.id_variable
+                WHERE r.id_indicador = ? AND var.tipo = 'numero'
+            `;
+            const defParams = [idIndicador];
+            if (id_periodo) { defSql += ' AND r.id_periodo = ?'; defParams.push(id_periodo); }
+            if (filters.id_municipio) { defSql += ' AND m.codigo_municipio = ?'; defParams.push(filters.id_municipio); }
+            if (filters.id_variable) { defSql += ' AND var.id_variable = ?'; defParams.push(filters.id_variable); }
+
+            defSql += ' GROUP BY m.nombre, var.unidad ORDER BY m.nombre ASC';
+            const [defRows] = await pool.query(defSql, defParams);
+
+            if (defRows.length > 0) {
+                charts.push({
+                    dimensionId: 'default',
+                    dimensionName: 'Totales por Municipio',
+                    data: defRows
+                });
+            }
+        }
+
         return {
+            fuente_datos: 'agrupada',
             mapData: mapRows,
             charts: charts
         };
