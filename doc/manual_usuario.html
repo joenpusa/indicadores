@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual de Usuario Oficial | Sistema de Indicadores DHA-SAN</title>
+    <style>
+        :root {
+            --primary: #0d3b66;
+            --primary-dark: #07213a;
+            --primary-light: #e7eff6;
+            --secondary: #0081a7;
+            --accent: #00afb9;
+            --success: #2a9d8f;
+            --warning: #f4a261;
+            --danger: #e76f51;
+            --dark: #1f2937;
+            --gray-100: #f8fafc;
+            --gray-200: #f1f5f9;
+            --gray-300: #e2e8f0;
+            --gray-600: #4b5563;
+            --gray-700: #334155;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --font-mono: "Fira Code", "Courier New", Courier, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            color: var(--dark);
+            background-color: var(--gray-100);
+            line-height: 1.65;
+            font-size: 15px;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 310px;
+            background: var(--primary-dark);
+            color: var(--white);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 24px 16px;
+            flex-shrink: 0;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-brand {
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+        }
+
+        .sidebar-brand p {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-category {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #64748b;
+            margin: 18px 0 8px 10px;
+            letter-spacing: 0.08em;
+        }
+
+        .nav-menu a {
+            display: block;
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            font-size: 0.88rem;
+            transition: all 0.2s ease;
+            margin-bottom: 2px;
+        }
+
+        .nav-menu a:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: var(--white);
+            transform: translateX(3px);
+        }
+
+        /* Content Area */
+        .main-content {
+            flex: 1;
+            padding: 40px 48px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: linear-gradient(135deg, #0f4c81 0%, #0081a7 100%);
+            color: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 36px 40px;
+            margin-bottom: 36px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            top: -40%;
+            right: -10%;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+
+        .hero h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            letter-spacing: -0.03em;
+        }
+
+        .hero p {
+            font-size: 1.05rem;
+            color: #e2e8f0;
+            max-width: 820px;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .meta-item span {
+            display: block;
+            font-size: 0.75rem;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .meta-item strong {
+            font-size: 0.95rem;
+            color: var(--white);
+        }
+
+        /* Section Cards */
+        .doc-section {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 36px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-300);
+        }
+
+        .doc-section h2 {
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--primary-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .doc-section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin: 28px 0 12px 0;
+        }
+
+        .doc-section h4 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--secondary);
+            margin: 20px 0 8px 0;
+        }
+
+        p, ul, ol {
+            margin-bottom: 16px;
+            color: var(--gray-600);
+        }
+
+        ul, ol {
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+            margin: 20px 0;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--gray-300);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+            text-align: left;
+            background: var(--white);
+        }
+
+        th {
+            background-color: var(--gray-200);
+            color: var(--gray-700);
+            font-weight: 600;
+            padding: 12px 16px;
+            border-bottom: 2px solid var(--gray-300);
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--gray-300);
+            vertical-align: top;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .badge-primary { background: #dbeafe; color: #1e40af; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #e0f2fe; color: #0369a1; }
+        .badge-purple { background: #f3e8ff; color: #6b21a8; }
+        .badge-live { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .badge-req { background: #fee2e2; color: #b91c1c; font-weight: 700; border: 1px solid #fca5a5; }
+        .badge-opt { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+        /* Callouts / Alerts */
+        .callout {
+            padding: 18px 20px;
+            border-radius: var(--radius-md);
+            margin: 20px 0;
+            border-left: 4px solid;
+            background: var(--white);
+        }
+
+        .callout-info {
+            border-color: var(--secondary);
+            background-color: #f0f9ff;
+            color: #0369a1;
+        }
+
+        .callout-warning {
+            border-color: var(--warning);
+            background-color: #fffbeb;
+            color: #b45309;
+        }
+
+        .callout-success {
+            border-color: var(--success);
+            background-color: #f0fdf4;
+            color: #15803d;
+        }
+
+        .callout-danger {
+            border-color: var(--danger);
+            background-color: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .callout strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+
+        /* Grid */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        /* Real Screenshot Containers */
+        .screenshot-card {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            margin: 24px 0;
+        }
+
+        .screenshot-header {
+            background: #f8fafc;
+            padding: 12px 18px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .screenshot-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .screenshot-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .screenshot-footer {
+            padding: 14px 20px;
+            background: #f8fafc;
+            font-size: 0.86rem;
+            color: #334155;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* Field Dictionary Table */
+        .field-table th {
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .field-table td {
+            font-size: 0.88rem;
+        }
+
+        /* Toast Preview Box */
+        .toast-preview-container {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+
+        .toast-box {
+            flex: 1;
+            min-width: 260px;
+            border-radius: 8px;
+            padding: 14px 16px;
+            color: #ffffff;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .toast-success { background: #15803d; }
+        .toast-danger { background: #dc2626; }
+        .toast-warning { background: #d97706; }
+
+        /* Step Boxes */
+        .step-card {
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            background: var(--white);
+            margin-bottom: 16px;
+            position: relative;
+            padding-left: 56px;
+        }
+
+        .step-number {
+            position: absolute;
+            left: 16px;
+            top: 20px;
+            width: 30px;
+            height: 30px;
+            background: var(--secondary);
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .step-card h4 {
+            margin-top: 0;
+            font-size: 1.05rem;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+
+        .step-card p {
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+
+        /* Link Button */
+        .btn-external-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-external-link:hover {
+            background: rgba(255, 255, 255, 0.35);
+            color: #ffffff;
+        }
+
+        @media print {
+            .sidebar { display: none !important; }
+            .app-container { display: block; }
+            .main-content { padding: 0; max-width: 100%; }
+            .doc-section { border: none; box-shadow: none; padding: 16px 0; page-break-inside: avoid; }
+        }
+
+        @media (max-width: 900px) {
+            .app-container { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; }
+            .main-content { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h2>Gobernación NDS</h2>
+            <p>Manual de Usuario &bull; DHA-SAN</p>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-category">Fundamentos</li>
+            <li><a href="#presentacion">Presentación y Acceso</a></li>
+            <li><a href="#notificaciones-toast">Mecanismo Toasts (Respuestas)</a></li>
+            <li><a href="#politicas-seguridad">Políticas de Acceso y Seguridad</a></li>
+
+            <li class="nav-category">Portal Ciudadano</li>
+            <li><a href="#landing-page">Portal Web Ciudadano</a></li>
+            <li><a href="#mapa-cobertura">Mapa Departamental de Cobertura</a></li>
+            <li><a href="#indicadores-tipo-publico">Consulta Pública y Descarga CSV</a></li>
+
+            <li class="nav-category">Gestión Operativa</li>
+            <li><a href="#login-sistema">Autenticación (Login)</a></li>
+            <li><a href="#dashboard-interno">Dashboard de Control</a></li>
+            <li><a href="#modulo-indicadores">Módulo de Indicadores</a></li>
+            <li><a href="#agrupada-vs-microdatos">Agrupada vs Microdatos</a></li>
+            <li><a href="#config-variables">Definición de Variables</a></li>
+            <li><a href="#carga-datos">Carga Manual y Plantilla Excel</a></li>
+            <li><a href="#visualizacion-graficos">Configuración de Gráficos</a></li>
+
+            <li class="nav-category">Administración</li>
+            <li><a href="#administracion-usuarios">Gestión de Usuarios</a></li>
+            <li><a href="#administracion-roles">Gestión de Roles y Permisos</a></li>
+            <li><a href="#configuracion-secretarias">Gestión de Secretarías</a></li>
+            <li><a href="#configuracion-municipios">Gestión de Municipios</a></li>
+            <li><a href="#faq-soporte">Preguntas Frecuentes</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Hero Header -->
+        <section class="hero" id="presentacion">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                <span class="hero-badge">Manual de Operación Oficial &bull; Versión 1.3</span>
+                <a href="inf_tecnico.html" class="btn-external-link" target="_blank">&rarr; Ver Informe Técnico de Infraestructura</a>
+            </div>
+            <h1>Manual de Usuario del Sistema de Indicadores</h1>
+            <p>Guía de operación integral para funcionarios, enlaces de secretarías y administradores. Describe el comportamiento del sistema, notificaciones de respuesta, geovisor de cobertura, consulta pública con descarga CSV y diccionario exhaustivo de cada formulario.</p>
+            
+            <div class="meta-grid">
+                <div class="meta-item">
+                    <span>Entidad</span>
+                    <strong>Gobernación Norte de Santander</strong>
+                </div>
+                <div class="meta-item">
+                    <span>Sitio Oficial</span>
+                    <strong>dha-san.nortedesantander.gov.co</strong>
+                </div>
+                <div class="meta-item">
+                    <span>Territorio</span>
+                    <strong>40 Municipios / 6 Subregiones</strong>
+                </div>
+                <div class="meta-item">
+                    <span>Usuario Administrador</span>
+                    <strong>Jorge E. Pulido S. (Admin General)</strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- 1. Mecanismo de Respuestas del Sistema (Toasts) -->
+        <section class="doc-section" id="notificaciones-toast">
+            <h2>1. Mecanismo de Respuestas del Sistema (Notificaciones Toast)</h2>
+            <p>
+                El sistema de información implementa un protocolo visual de retroalimentación inmediata mediante <strong>mensajes emergentes flotantes (Toasts)</strong> que se proyectan en la esquina superior derecha de la pantalla ante cualquier acción ejecutada por el usuario:
+            </p>
+
+            <div class="toast-preview-container">
+                <div class="toast-box toast-success">
+                    <div style="font-size: 1.4rem;">✔</div>
+                    <div>
+                        <strong>Proceso Exitoso (Toast Verde)</strong>
+                        <div style="font-size: 0.84rem; margin-top: 2px;">Se muestra cuando una operación fue validada y completada satisfactoriamente (ej: <em>"Indicador creado con éxito"</em>, <em>"Variables reordenadas"</em>, <em>"Plantilla Excel procesada correctamente"</em>).</div>
+                    </div>
+                </div>
+                <div class="toast-box toast-danger">
+                    <div style="font-size: 1.4rem;">✖</div>
+                    <div>
+                        <strong>Proceso Rechazado / Error (Toast Rojo)</strong>
+                        <div style="font-size: 0.84rem; margin-top: 2px;">Se muestra cuando una acción no se pudo procesar debido a fallos de validación, campos obligatorios vacíos, formato de archivo incorrecto en Excel o credenciales inválidas.</div>
+                    </div>
+                </div>
+                <div class="toast-box toast-warning">
+                    <div style="font-size: 1.4rem;">⚠</div>
+                    <div>
+                        <strong>Advertencia (Toast Amarillo)</strong>
+                        <div style="font-size: 0.84rem; margin-top: 2px;">Notifica situaciones preventivas, como solicitudes de confirmación antes de eliminar registros o avisos de expiración de sesión.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="callout callout-info">
+                <strong>Comportamiento del Toast:</strong>
+                Las notificaciones permanecen visibles durante <strong>4 a 5 segundos</strong> y desaparecen automáticamente, o pueden ser cerradas de forma instantánea pulsando la <code>✖</code> en la esquina de la notificación.
+            </div>
+        </section>
+
+        <!-- 2. Políticas de Acceso y Seguridad -->
+        <section class="doc-section" id="politicas-seguridad">
+            <h2>2. Políticas de Seguridad, Mínimo Privilegio y Asignación de Roles</h2>
+            <p>
+                La confiabilidad de los indicadores departamentales requiere que todos los usuarios sigan estrictas normas de seguridad de la información:
+            </p>
+
+            <div class="grid-3">
+                <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 18px; background: #ffffff;">
+                    <h4 style="color: var(--primary); margin-top: 0;">1. Contraseñas Robustas</h4>
+                    <p style="font-size: 0.86rem; color: #475569;">Las claves deben tener mínimo 10 caracteres e incluir letras mayúsculas, minúsculas, números y caracteres especiales. Queda terminantemente prohibido compartir contraseñas institucionales o anotarlas en lugares visibles.</p>
+                </div>
+                <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 18px; background: #ffffff;">
+                    <h4 style="color: var(--primary); margin-top: 0;">2. Principio de Mínimo Privilegio</h4>
+                    <p style="font-size: 0.86rem; color: #475569;">A cada funcionario se le debe asignar única y exclusivamente el nivel de acceso indispensable para cumplir con sus funciones laborales (por ejemplo, perfil <em>Consultor</em> si solo va a generar reportes de lectura).</p>
+                </div>
+                <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 18px; background: #ffffff;">
+                    <h4 style="color: var(--primary); margin-top: 0;">3. Segmentación por Secretaría</h4>
+                    <p style="font-size: 0.86rem; color: #475569;">Cada rol debe estar estrictamente vinculado a la secretaría correspondiente (ej. Secretaría de Salud). Esto garantiza que un enlace sectorial no pueda modificar o borrar accidentalmente datos de otra dependencia.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Portal Público Ciudadano (Landing Page) -->
+        <section class="doc-section" id="landing-page">
+            <h2>3. Portal Web Ciudadano (Landing Page)</h2>
+            <p>
+                Accesible en <code>https://dha-san.nortedesantander.gov.co/</code> de manera pública sin requerir registro ni contraseña:
+            </p>
+
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Vista General del Portal Ciudadano</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/landing_real.png" alt="Portal Ciudadano Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    <strong>Estructura del Portal:</strong> Barra de navegación institucional con botón de acceso administrativo ("Iniciar Sesión"), carrusel de noticias, geovisor territorial de Norte de Santander, selectores temáticos y tableros estadísticos dinámicos.
+                </div>
+            </div>
+
+            <!-- Mapa Departamental de Cobertura -->
+            <h3 id="mapa-cobertura">3.1. Mapa Departamental de Cobertura</h3>
+            <p>
+                En la página principal se presenta el <strong>Mapa de Cobertura</strong> interactivo con el lema: <em>"Explora nuestra presencia en los municipios de Norte de Santander"</em>:
+            </p>
+
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Mapa de Cobertura &bull; 40 Municipios de Norte de Santander</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/cobertura.png" alt="Mapa de Cobertura Real &bull; Norte de Santander" class="screenshot-img">
+                <div class="screenshot-footer">
+                    <strong>Interactividad del Geovisor:</strong> El mapa está construido con polígonos GeoJSON vectoriales que delimitan con precisión los 40 municipios de Norte de Santander. Al interactuar o situar el cursor sobre cualquier territorio (como se aprecia en la captura con el municipio de <strong>Tibú</strong> resaltado en tono ocre con su etiqueta emergente), el sistema dinamiza la cobertura geográfica y permite focalizar la consulta de intervenciones e indicadores departamentales.
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Consulta Pública por Tipo de Indicador y Descarga CSV -->
+        <section class="doc-section" id="indicadores-tipo-publico">
+            <h2>4. Consulta Pública por Tipo de Indicador y Descarga CSV</h2>
+            <p>
+                Al hacer clic en cualquiera de las cuatro dimensiones temáticas desde la Landing Page (ejemplo: <code>https://dha-san.nortedesantander.gov.co/indicadores/tipo/Disponibilidad</code>), se abre la vista de análisis público detallado:
+            </p>
+
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Vista Pública por Tipo de Indicador (Disponibilidad / Microdatos)</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/indicador_tipo_microdatos.png" alt="Vista Pública Tipo Indicador Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    <strong>Componentes de la Vista Pública:</strong> Menú lateral temático, panel de filtros analíticos, graficador interactivo de microdatos con resultados cruzados y botón de descarga CSV para la comunidad.
+                </div>
+            </div>
+
+            <h3>4.1. Menú Lateral (Sidebar) de Indicadores del Tipo</h3>
+            <div class="callout callout-warning">
+                <strong>Regla de Visualización en el Sidebar Público:</strong>
+                En el menú lateral izquierdo de cada tipo se visualizan <strong>exclusivamente los indicadores que cumplen dos condiciones en la administración</strong>:
+                <ol style="margin-top: 6px; margin-bottom: 0;">
+                    <li>Estar marcados con el estado <strong>"Indicador Activo"</strong> (<code>es_activo = 1</code>).</li>
+                    <li>Estar clasificados dentro de la categoría seleccionada (ej. <em>Disponibilidad</em>).</li>
+                </ol>
+                Si un indicador se encuentra desactivado temporalmente en el panel administrativo, se oculta de forma automática de la vista pública.
+            </div>
+
+            <h3>4.2. Graficador Interactivo y Filtros de Microdatos</h3>
+            <p>
+                Permite a los usuarios realizar tabulaciones cruzadas y explorar las dimensiones del indicador mediante cuatro controles superiores:
+            </p>
+            <div class="table-responsive">
+                <table class="field-table">
+                    <thead>
+                        <tr>
+                            <th>Selector / Filtro</th>
+                            <th>Opciones / Valores</th>
+                            <th>Propósito Analítico</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Eje X (Filas)</strong></td>
+                            <td>MUNICIPIO, AÑO, o cualquier dimensión del indicador.</td>
+                            <td>Define la variable o territorio que se desplegará horizontalmente en la base del gráfico.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Agrupar por (Color)</strong></td>
+                            <td>"Sin agrupar" o dimensiones cualitativas (Sexo, Vereda, Tipo).</td>
+                            <td>Genera una leyenda de colores diferenciados para realizar comparaciones cruzadas dentro de cada barra.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Valor (Eje Y)</strong></td>
+                            <td>"Conteo de Registros", "Sumatoria", "Promedio".</td>
+                            <td>Determina la operación matemática o agregación que define la altura de las barras.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tipo de Gráfico</strong></td>
+                            <td>"Apilado (Stacked)", "Barras Agrupadas", "Línea Continua".</td>
+                            <td>Permite cambiar dinámicamente la visualización visual según la preferencia del analista.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>4.3. Descarga de Datos Abiertos (Botón "Descargar CSV")</h3>
+            <p>
+                En concordancia con los principios de <strong>Gobierno Abierto e Interoperabilidad</strong>, en la cabecera de la sección <em>Resultados Cruzados</em> se encuentra el botón <strong>"Descargar CSV"</strong> (<span style="color: #107c41;">📥</span>):
+            </p>
+            <ul>
+                <li><strong>Formato Estándar:</strong> Genera un archivo <code>.csv</code> delimitado por comas con codificación UTF-8 con BOM (Byte Order Mark) para compatibilidad inmediata con Microsoft Excel.</li>
+                <li><strong>Utilidad Ciudadana:</strong> Permite que líderes comunitarios, veedurías, periodistas e investigadores universitarios descarguen la matriz de datos procesada para realizar estudios independientes, auditorías sociales o análisis estadísticos en herramientas externas como Power BI, R o Python.</li>
+            </ul>
+        </section>
+
+        <!-- 5. Autenticación y Acceso al Sistema -->
+        <section class="doc-section" id="login-sistema">
+            <h2>5. Autenticación de Funcionarios (Login)</h2>
+            <p>
+                Para acceder al panel privado de gestión, ingrese a <code>https://dha-san.nortedesantander.gov.co/login</code>:
+            </p>
+
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Pantalla de Inicio de Sesión (Login Institucional)</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/login_real.png" alt="Pantalla Real de Inicio de Sesión" class="screenshot-img">
+                <div class="screenshot-footer">
+                    <strong>Diccionario de Campos:</strong>
+                    <div class="table-responsive" style="margin-top: 8px;">
+                        <table class="field-table">
+                            <thead><tr><th>Campo</th><th>Condición</th><th>Tipo</th><th>Instrucción / Formato</th><th>Importancia</th></tr></thead>
+                            <tbody>
+                                <tr><td><strong>Correo Electrónico</strong></td><td><span class="badge badge-req">Obligatorio</span></td><td>Email</td><td>Ej: <code>usuario@nortedesantander.gov.co</code></td><td>Identificador único del usuario para la sesión.</td></tr>
+                                <tr><td><strong>Contraseña</strong></td><td><span class="badge badge-req">Obligatorio</span></td><td>Password</td><td>Mínimo 8 caracteres alfanuméricos.</td><td>Llave de acceso cifrada con bcrypt en el servidor.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Dashboard Interno -->
+        <section class="doc-section" id="dashboard-interno">
+            <h2>6. Dashboard de Control Administrativo</h2>
+            <p>
+                Pantalla de bienvenida e indicadores de gestión que se despliega tras iniciar sesión:
+            </p>
+
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Vista Real del Dashboard Interno (Perfil Administrador)</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/dashboard_real.png" alt="Dashboard Interno Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    <strong>Elementos Visibles:</strong> Barra superior con el nombre del funcionario conectado (<em>Jorge E. Pulido S.</em>), rol asignado (<em>Administrador General</em>), botón de cierre de sesión, menú lateral colapsable (Indicadores, Usuarios, Roles, Secretarías, Municipios) y métricas de desempeño institucional.
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Módulo de Indicadores -->
+        <section class="doc-section" id="modulo-indicadores">
+            <h2>7. Módulo de Gestión de Indicadores</h2>
+            <p>
+                Permite a los funcionarios autorizados crear y administrar la ficha técnica de cada indicador:
+            </p>
+
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Vista Real del Módulo de Indicadores</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/indicadores_real.png" alt="Módulo Indicadores Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    <strong>Controles y Acciones por Fila:</strong>
+                    <ul style="margin: 6px 0 0 16px;">
+                        <li><strong>Variables (<span style="color: #0284c7;">⚙️</span>):</strong> Administrar las columnas y dimensiones del indicador.</li>
+                        <li><strong>Cargar Datos (<span style="color: #107c41;">📥</span>):</strong> Descargar plantilla Excel y subir información.</li>
+                        <li><strong>Visualización (<span style="color: #e76f51;">📈</span>):</strong> Configurar tipo de gráfico y mapeo de ejes.</li>
+                        <li><strong>Editar (<span style="color: #f59e0b;">✏️</span>):</strong> Modificar nombre, secretaría o descripción.</li>
+                        <li><strong>Eliminar (<span style="color: #dc2626;">🗑️</span>):</strong> Borrar el indicador y sus registros vinculados.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>7.1. Diccionario de Campos: Formulario de Creación / Edición de Indicador</h3>
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Modal Real de Creación de Indicador</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/modal_nuevo_indicador.png" alt="Modal Nuevo Indicador Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    <div class="table-responsive">
+                        <table class="field-table">
+                            <thead>
+                                <tr>
+                                    <th>Campo en Pantalla</th>
+                                    <th>Condición</th>
+                                    <th>Tipo de Control</th>
+                                    <th>Instrucción / Cómo Diligenciarlo</th>
+                                    <th>Importancia y Efecto en el Sistema</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Nombre *</strong></td>
+                                    <td><span class="badge badge-req">Obligatorio</span></td>
+                                    <td>Texto (FloatingLabel)</td>
+                                    <td>Escriba un nombre claro y representativo. Ej: <em>"Inventario Porcino Departamental"</em>.</td>
+                                    <td>Es el título principal que se visualizará en la Landing Page, tablas y reportes oficiales.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Secretaría Responsable *</strong></td>
+                                    <td><span class="badge badge-req">Obligatorio</span></td>
+                                    <td>Selector con Modal de Búsqueda</td>
+                                    <td>Haga clic en la lista y elija la secretaría a cargo. Ej: <em>"Secretaría de Agricultura"</em>.</td>
+                                    <td>Garantiza la trazabilidad institucional y restringe los permisos de edición al enlace de dicha secretaría.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Descripción</strong></td>
+                                    <td><span class="badge badge-opt">Opcional</span></td>
+                                    <td>Área de Texto (Textarea)</td>
+                                    <td>Explique brevemente la metodología de cálculo y el objetivo del indicador.</td>
+                                    <td>Brinda contexto técnico a la ciudadanía y a los auditores en el portal público.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Periodicidad Permitida *</strong></td>
+                                    <td><span class="badge badge-req">Obligatorio</span></td>
+                                    <td>Lista Desplegable (Select)</td>
+                                    <td>Elija una opción: <em>Anual, Semestral, Trimestral, Mensual, Periodo en Salud (13 semanas)</em>.</td>
+                                    <td>Condiciona las opciones de periodos que se podrán registrar y cómo se generará la plantilla Excel.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tipo de Indicador *</strong></td>
+                                    <td><span class="badge badge-req">Obligatorio</span></td>
+                                    <td>Lista Desplegable (Select)</td>
+                                    <td>Seleccione entre: <em>Disponibilidad, Adecuación, Accesibilidad, Sostenibilidad</em>.</td>
+                                    <td>Determina bajo qué categoría estratégica se agrupará y mostrará en el portal ciudadano.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Unidad Base</strong></td>
+                                    <td><span class="badge badge-opt">Opcional</span></td>
+                                    <td>Texto</td>
+                                    <td>Escriba la unidad métrica. Ej: <em>"Porcentaje (%)"</em>, <em>"Cabezas de Ganado"</em>, <em>"Hectáreas"</em>.</td>
+                                    <td>Se imprime automáticamente junto a las cifras en las gráficas y tooltips.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fuente de Datos *</strong></td>
+                                    <td><span class="badge badge-req">Obligatorio</span></td>
+                                    <td>Lista Desplegable (Select)</td>
+                                    <td>Elija entre <strong>Agrupada (Estándar)</strong> o <strong>Detallada (Microdatos)</strong>.</td>
+                                    <td>Define si la plantilla Excel consolidará sumas por municipio o recibirá registros caso a caso.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Indicador Activo</strong></td>
+                                    <td><span class="badge badge-opt">Conmutador (Switch)</span></td>
+                                    <td>Booleano (On / Off)</td>
+                                    <td>Marcar como activado (azul) para publicar; desmarcar para guardar como borrador interno.</td>
+                                    <td>Si está desactivado, <strong>no será visible en el portal ciudadano</strong> ni admitirá cargas de datos.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. Diferencias entre Agrupación y Microdatos -->
+        <section class="doc-section" id="agrupada-vs-microdatos">
+            <h2>8. Diferencias entre Indicadores por Agrupación y Microdatos</h2>
+            <p>
+                La selección de la <strong>Fuente de Datos</strong> define cómo opera toda la cadena de captura y visualización:
+            </p>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Criterio</th>
+                            <th>Modo Agrupada (Estándar)</th>
+                            <th>Modo Detallada (Microdatos)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Estructura del Dato</strong></td>
+                            <td>Consolidados territoriales agregados (ej. Total de Familias Atendidas = 1,200).</td>
+                            <td>Registros individuales caso a caso (ej. Cada beneficiario censado con sus atributos).</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Filas en Plantilla Excel</strong></td>
+                            <td>1 sola fila por cada municipio en un periodo (ej. 40 filas por año).</td>
+                            <td>Múltiples filas para un mismo municipio (ej. 1,500 beneficiarios en Cúcuta).</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Analítica Disponible</strong></td>
+                            <td>Comparativa territorial entre municipios, evolución temporal, totales departamentales.</td>
+                            <td>Conteo de casos, distribución por rangos de edad, tabulaciones cruzadas y descarga CSV.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ejemplos Institucionales</strong></td>
+                            <td>Secretaría de Hacienda (Presupuesto por municipio), Infraestructura (km de vías pavimentados).</td>
+                            <td>Secretaría de Salud (Casos de dengue), Víctimas (Familias registradas), Educación (Estudiantes matriculados).</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 9. Definición de Variables -->
+        <section class="doc-section" id="config-variables">
+            <h2>9. Definición y Tipificación de Variables</h2>
+            <p>
+                Permite estructurar las columnas de datos que compondrán cada registro del indicador (ejemplo real: <em>Inventario Porcino</em>):
+            </p>
+
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Vista Real del Módulo de Variables</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/variables_real.png" alt="Módulo Variables Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    <div class="table-responsive">
+                        <table class="field-table">
+                            <thead>
+                                <tr>
+                                    <th>Parámetro de la Variable</th>
+                                    <th>Condición</th>
+                                    <th>Opciones / Tipo</th>
+                                    <th>Cómo Diligenciarlo y Propósito</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Nombre de Variable *</strong></td>
+                                    <td><span class="badge badge-req">Obligatorio</span></td>
+                                    <td>Texto</td>
+                                    <td>Nombre claro de la métrica. Ej: <em>"Población Beneficiada"</em>, <em>"Sexo"</em>, <em>"Área Cultivada"</em>. Será el encabezado de columna en Excel.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tipo de Dato *</strong></td>
+                                    <td><span class="badge badge-req">Obligatorio</span></td>
+                                    <td>Desplegable</td>
+                                    <td>
+                                        <code>numero</code>: Valores cuantitativos (sumables, promediables).<br>
+                                        <code>texto</code>: Categorías alfanuméricas o nombres.<br>
+                                        <code>fecha</code>: Registro cronológico con formato YYYY-MM-DD.<br>
+                                        <code>booleano</code>: Verificación binaria Sí / No.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Unidad</strong></td>
+                                    <td><span class="badge badge-opt">Opcional</span></td>
+                                    <td>Texto</td>
+                                    <td>Unidad de medida. Ej: <em>"Personas"</em>, <em>"Kg"</em>, <em>"Ha"</em>.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Es Dimensión</strong></td>
+                                    <td><span class="badge badge-opt">Checkbox</span></td>
+                                    <td>Booleano</td>
+                                    <td>Márquelo si la variable se usará para segmentar y filtrar en gráficos (ej. Grupo Étnico, Género, Zona Urbana/Rural).</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Es Obligatoria</strong></td>
+                                    <td><span class="badge badge-opt">Checkbox</span></td>
+                                    <td>Booleano</td>
+                                    <td>Si se marca, el importador de Excel rechazará la fila si esta celda viene en blanco.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Reordenamiento (▲ ▼)</strong></td>
+                                    <td><span class="badge badge-opt">Botones</span></td>
+                                    <td>Acción directa</td>
+                                    <td>Permite subir o bajar la variable para fijar el orden exacto de las columnas en la plantilla descargada.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. Carga de Información -->
+        <section class="doc-section" id="carga-datos">
+            <h2>10. Carga de Información (Manual y Masiva en Excel)</h2>
+            <p>
+                Ofrece dos modalidades de alimentación de datos:
+            </p>
+
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Vista Real de Carga de Datos (Excel y Manual)</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/carga_real.png" alt="Carga de Datos Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    <div class="table-responsive">
+                        <table class="field-table">
+                            <thead>
+                                <tr>
+                                    <th>Modalidad</th>
+                                    <th>Campos / Inputs</th>
+                                    <th>Condición</th>
+                                    <th>Instrucciones Clave para Evitar Errores</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Pestaña Masiva (Excel)</strong></td>
+                                    <td>
+                                        1. Botón "Descargar Plantilla Excel"<br>
+                                        2. Selector de archivo (.xlsx / .xls)<br>
+                                        3. Botón "Subir y Procesar Archivo"
+                                    </td>
+                                    <td><span class="badge badge-req">Obligatorio archivo .xlsx</span></td>
+                                    <td>
+                                        • Descargue siempre la plantilla limpia generada por el sistema.<br>
+                                        • <strong>Nunca altere ni renombre los nombres de los encabezados</strong>.<br>
+                                        • Conserve intactos los códigos DANE de los 40 municipios.<br>
+                                        • No ingrese texto en columnas definidas como numéricas.<br>
+                                        • Tamaño máximo permitido: 25 MB por archivo.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Pestaña Manual (Fila a Fila)</strong></td>
+                                    <td>
+                                        • Municipio * (Selector desplegable)<br>
+                                        • Año * (Numérico, 4 dígitos)<br>
+                                        • Periodo * (Selector según periodicidad)<br>
+                                        • Campos dinámicos de cada variable<br>
+                                        • Descripción / Observaciones
+                                    </td>
+                                    <td><span class="badge badge-req">Municipio y Año requeridos</span></td>
+                                    <td>Ideal para ingresar correcciones puntuales o actualizar un solo municipio sin necesidad de generar una hoja de cálculo.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 11. Configuración de Visualizaciones -->
+        <section class="doc-section" id="visualizacion-graficos">
+            <h2>11. Configuración de Visualizaciones y Gráficos</h2>
+            <p>
+                Permite predeterminar cómo se proyectará el indicador en los tableros analíticos y en la Landing Page:
+            </p>
+
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Vista Real de Configuración de Visualización</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/visualizacion_real.png" alt="Configuración de Visualización Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    <div class="table-responsive">
+                        <table class="field-table">
+                            <thead>
+                                <tr>
+                                    <th>Parámetro</th>
+                                    <th>Condición</th>
+                                    <th>Opciones</th>
+                                    <th>Propósito y Cómo Seleccionarlo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Tipo de Gráfico *</strong></td>
+                                    <td><span class="badge badge-req">Obligatorio</span></td>
+                                    <td>Botones interactivos: Barra, Línea, Pie (Circular), Mapa</td>
+                                    <td>
+                                        • <strong>Barra:</strong> Comparación territorial de valores.<br>
+                                        • <strong>Línea:</strong> Series temporales continuas (mensual / trimestral).<br>
+                                        • <strong>Pie:</strong> Participación porcentual entre categorías.<br>
+                                        • <strong>Mapa:</strong> Distribución coroplética sobre Norte de Santander.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Variable Eje X *</strong></td>
+                                    <td><span class="badge badge-req">Obligatorio</span></td>
+                                    <td>Lista desplegable</td>
+                                    <td>Seleccione la variable independiente (ej. Municipio, Periodo, o Dimensión categórica).</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Variable Eje Y *</strong></td>
+                                    <td><span class="badge badge-req">Obligatorio</span></td>
+                                    <td>Lista desplegable</td>
+                                    <td>Seleccione la variable cuantitativa métrica que determinará la altura de los datos.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 12. Administración de Usuarios y Roles -->
+        <section class="doc-section" id="administracion-usuarios">
+            <h2>12. Administración de Usuarios y Roles</h2>
+            <p>
+                Módulo exclusivo para el Administrador General para gestionar el personal y los permisos del sistema:
+            </p>
+
+            <h3>12.1. Gestión de Usuarios</h3>
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Módulo de Usuarios en Producción</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/usuarios_real.png" alt="Módulo Usuarios Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    Muestra el listado de funcionarios con su nombre, correo institucional, rol, secretaría y estado de activación.
+                </div>
+            </div>
+
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Modal Real de Registro de Nuevo Usuario</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/modal_nuevo_usuario.png" alt="Modal Nuevo Usuario Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    <div class="table-responsive">
+                        <table class="field-table">
+                            <thead><tr><th>Campo</th><th>Condición</th><th>Tipo</th><th>Instrucción de Diligenciamiento</th><th>Importancia</th></tr></thead>
+                            <tbody>
+                                <tr><td><strong>Correo Electrónico *</strong></td><td><span class="badge badge-req">Obligatorio</span></td><td>Email</td><td>Correo institucional único. Ej: <code>funcionario@nortedesantander.gov.co</code></td><td>Identificador único para el inicio de sesión.</td></tr>
+                                <tr><td><strong>Nombre Completo *</strong></td><td><span class="badge badge-req">Obligatorio</span></td><td>Texto</td><td>Nombres y apellidos completos del funcionario.</td><td>Aparece en los registros de auditoría y en la barra superior.</td></tr>
+                                <tr><td><strong>Rol Asignado *</strong></td><td><span class="badge badge-req">Obligatorio</span></td><td>Select</td><td>Seleccione el perfil adecuado (ej: Enlace Secretaría con permiso editar).</td><td>Determina las acciones autorizadas en la plataforma.</td></tr>
+                                <tr><td><strong>Secretaría *</strong></td><td><span class="badge badge-req">Obligatorio</span></td><td>Select</td><td>Seleccione la dependencia a la que pertenece el funcionario.</td><td>Aísla el acceso para que solo gestione datos de su entidad.</td></tr>
+                                <tr><td><strong>Contraseña Inicial *</strong></td><td><span class="badge badge-req">Obligatorio</span></td><td>Password</td><td>Contraseña provisional segura (mínimo 8 caracteres).</td><td>Permite el primer acceso del funcionario.</td></tr>
+                                <tr><td><strong>Usuario Activo</strong></td><td><span class="badge badge-opt">Checkbox</span></td><td>Booleano</td><td>Marcado por defecto.</td><td>Permite revocar el acceso de inmediato sin borrar el histórico.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <h3 id="administracion-roles">12.2. Gestión de Roles y Permisos</h3>
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Módulo de Roles en Producción</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/roles_real.png" alt="Módulo Roles Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    Configuración de perfiles con permisos de tipo <code>consultar</code> (lectura) o <code>editar</code> (gestión completa).
+                </div>
+            </div>
+
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Modal Real de Configuración de Roles</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/modal_nuevo_rol.png" alt="Modal Nuevo Rol Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    <div class="table-responsive">
+                        <table class="field-table">
+                            <thead><tr><th>Campo</th><th>Condición</th><th>Tipo</th><th>Instrucción de Diligenciamiento</th><th>Importancia</th></tr></thead>
+                            <tbody>
+                                <tr><td><strong>Nombre del Rol *</strong></td><td><span class="badge badge-req">Obligatorio</span></td><td>Texto</td><td>Nombre descriptivo. Ej: <em>"Enlace Secretaría de Salud"</em>.</td><td>Identifica el perfil en la lista de asignación a usuarios.</td></tr>
+                                <tr><td><strong>Tipo de Permiso *</strong></td><td><span class="badge badge-req">Obligatorio</span></td><td>Select</td><td>Elegir entre: <code>consultar</code> (solo lectura) o <code>editar</code> (gestión de datos).</td><td>Bloquea o habilita los botones de creación, edición y carga de Excel.</td></tr>
+                                <tr><td><strong>Secretaría Autorizada</strong></td><td><span class="badge badge-opt">Select</span></td><td>Selector</td><td>Dejar vacío si es Administrador General; o elegir la dependencia sectorial.</td><td>Garantiza el confinamiento de permisos a una sola dependencia.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 13. Configuración de Secretarías y Municipios -->
+        <section class="doc-section" id="configuracion-secretarias">
+            <h2>13. Configuración Institucional: Secretarías y Municipios</h2>
+
+            <h3>13.1. Módulo de Secretarías</h3>
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Módulo de Secretarías en Producción</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/secretarias_real.png" alt="Módulo Secretarías Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    Directorio institucional de dependencias y entidades descentralizadas de la Gobernación de Norte de Santander.
+                </div>
+            </div>
+
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Modal Real de Creación de Secretaría</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/modal_nueva_secretaria.png" alt="Modal Nueva Secretaría Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    <div class="table-responsive">
+                        <table class="field-table">
+                            <thead><tr><th>Campo</th><th>Condición</th><th>Tipo</th><th>Instrucción de Diligenciamiento</th><th>Importancia</th></tr></thead>
+                            <tbody>
+                                <tr><td><strong>Nombre de la Secretaría *</strong></td><td><span class="badge badge-req">Obligatorio</span></td><td>Texto</td><td>Nombre oficial completo. Ej: <em>"Secretaría de Educación Departamental"</em>.</td><td>Aparece en filtros, indicadores y asignación de usuarios.</td></tr>
+                                <tr><td><strong>Estado Activo</strong></td><td><span class="badge badge-opt">Switch</span></td><td>Booleano</td><td>Marcado por defecto para habilitar la dependencia.</td><td>Permite archivar dependencias sin eliminar sus datos históricos.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <h3 id="configuracion-municipios">13.2. Módulo de Municipios y Zonas</h3>
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Módulo de Municipios en Producción</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/municipios_real.png" alt="Módulo Municipios Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    Catálogo oficial de los 40 municipios de Norte de Santander con su código DANE y zona territorial.
+                </div>
+            </div>
+
+            <div class="screenshot-card">
+                <div class="screenshot-header">
+                    <span class="screenshot-title">📸 Modal Real de Edición y Creación de Municipio</span>
+                    <span class="badge badge-live">Producción Oficial</span>
+                </div>
+                <img src="img/modal_nuevo_municipio.png" alt="Modal Nuevo Municipio Real" class="screenshot-img">
+                <div class="screenshot-footer">
+                    <div class="table-responsive">
+                        <table class="field-table">
+                            <thead><tr><th>Campo</th><th>Condición</th><th>Tipo</th><th>Instrucción de Diligenciamiento</th><th>Importancia</th></tr></thead>
+                            <tbody>
+                                <tr><td><strong>Código DANE *</strong></td><td><span class="badge badge-req">Obligatorio</span></td><td>Texto (5 dígitos)</td><td>Código oficial del DANE. Ej: <code>54001</code> para Cúcuta, <code>54498</code> para Ocaña.</td><td>Clave única de validación e interoperabilidad con las plantillas Excel.</td></tr>
+                                <tr><td><strong>Nombre del Municipio *</strong></td><td><span class="badge badge-req">Obligatorio</span></td><td>Texto</td><td>Nombre oficial del municipio con su respectiva ortografía.</td><td>Se imprime en mapas, tooltips, ejes y reportes analíticos.</td></tr>
+                                <tr><td><strong>Zona / Subregión *</strong></td><td><span class="badge badge-req">Obligatorio</span></td><td>Select</td><td>Subregión de pertenencia (Metropolitana, Catatumbo, Centro, Occidente, etc.).</td><td>Permite agrupaciones y filtros territoriales en el geovisor.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 14. Preguntas Frecuentes y Soporte -->
+        <section class="doc-section" id="faq-soporte">
+            <h2>14. Preguntas Frecuentes (FAQ) y Soporte Técnico</h2>
+
+            <div class="step-card">
+                <div class="step-number" style="background: var(--primary);">?</div>
+                <h4>¿Por qué el sistema rechaza mi archivo Excel al intentar cargarlo?</h4>
+                <p>Las razones más frecuentes son: 1) Se modificaron los nombres de los encabezados de la plantilla original; 2) El código DANE del municipio no coincide con los 40 municipios de Norte de Santander; 3) Se ingresó texto en columnas definidas como tipo "número"; 4) Se dejaron en blanco celdas de variables marcadas como "Obligatorias". Descargue siempre una plantilla limpia desde la opción "Descargar Plantilla Excel" del indicador.</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number" style="background: var(--primary);">?</div>
+                <h4>¿Por qué mi nuevo indicador no aparece en la Landing Page ni en la sección pública?</h4>
+                <p>Verifique en la ficha del indicador que el interruptor <strong>"Indicador Activo"</strong> esté encendido (azul). Si el indicador está inactivo, el sistema lo mantiene oculto del público y del menú lateral para permitir que el funcionario trabaje en modo borrador hasta que los datos estén consolidados.</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number" style="background: var(--primary);">?</div>
+                <h4>¿Cómo reordenar las variables para que aparezcan en una posición específica en Excel?</h4>
+                <p>En el módulo de Variables del indicador, use las flechas ▲ y ▼ para mover cada variable hacia arriba o hacia abajo. Al pulsar guardar, la plantilla Excel descargada reflejará exactamente el orden configurado.</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number" style="background: var(--primary);">?</div>
+                <h4>¿Dónde solicitar soporte técnico o creación de nuevas cuentas de funcionario?</h4>
+                <p>Comuníquese con la Dirección de Tecnologías de la Información y las Comunicaciones (TIC) o con el Administrador General del sistema (<code>joenpusa@gmail.com</code>) en la Gobernación de Norte de Santander.</p>
+            </div>
+        </section>
+    </main>
+</div>
+
+</body>
+</html>
