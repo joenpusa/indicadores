@@ -154,21 +154,70 @@ class IndicadoresDAO {
         }
     }
 
-    static async getDashboardData(idIndicador, filters) {
-        const { id_periodo, active } = filters;
+    static async getDashboardData(idIndicador, filters = {}) {
+        let { 
+            id_periodo, 
+            active, 
+            id_municipio, 
+            id_variable, 
+            dimension_valor, 
+            agrupar_municipios = 'true', 
+            agrupar_periodos = 'ninguno', 
+            agrupar_variables = 'true' 
+        } = filters;
 
-        // 0. Fetch indicator to check fuente_datos
-        const [indRows] = await pool.query('SELECT fuente_datos FROM indicadores WHERE id_indicador = ?', [idIndicador]);
+        // Parse boolean and enum flags
+        const agruparMunicipios = agrupar_municipios === true || agrupar_municipios === 'true' || agrupar_municipios === '1' || agrupar_municipios === 1;
+        const agruparVariables = agrupar_variables === true || agrupar_variables === 'true' || agrupar_variables === '1' || agrupar_variables === 1;
+        const modoPeriodo = (agrupar_periodos === 'anio' || agrupar_periodos === 'todos') ? agrupar_periodos : 'ninguno';
+
+        // 0. Fetch indicator info
+        const [indRows] = await pool.query('SELECT fuente_datos, nombre, periodicidad FROM indicadores WHERE id_indicador = ?', [idIndicador]);
         if (indRows.length === 0) throw new Error('Indicador no encontrado');
-        const fuente_datos = indRows[0].fuente_datos || 'agrupada';
+        const indicadorInfo = indRows[0];
+        const fuente_datos = indicadorInfo.fuente_datos || 'agrupada';
 
-        // 1. Get Map Data (Heatmap) - Sum of all numeric variables per municipality
+        // 1. Fetch all variables of this indicator
+        const [allVariables] = await pool.query('SELECT * FROM indicador_variables WHERE id_indicador = ? ORDER BY orden ASC', [idIndicador]);
+        const numVars = allVariables.filter(v => v.tipo === 'numero');
+        const textDims = allVariables.filter(v => v.tipo === 'texto' && v.es_dimension === 1);
+
+        // 2. Fetch distinct dimension values for slicer/filter (if any text dimensions exist)
+        let dimensionOptions = [];
+        if (textDims.length > 0) {
+            try {
+                const [dimRows] = await pool.query(`
+                    SELECT DISTINCT iv.id_variable, iv.nombre as dimension_nombre, v.valor, iv.orden
+                    FROM indicador_valores v
+                    JOIN indicador_variables iv ON v.id_variable = iv.id_variable
+                    JOIN indicador_registros r ON v.id_registro = r.id_registro
+                    WHERE r.id_indicador = ? AND iv.tipo = 'texto'
+                    ORDER BY iv.orden ASC, v.valor ASC
+                `, [idIndicador]);
+                dimensionOptions = dimRows;
+            } catch (e) {
+                console.error('Error fetching dimension options:', e);
+            }
+        }
+
+        // 3. Normalizing Filter Lists
+        const parseListParam = (param) => {
+            if (!param) return [];
+            if (Array.isArray(param)) return param.map(String).map(s => s.trim()).filter(Boolean);
+            return String(param).split(',').map(s => s.trim()).filter(s => s && s !== 'all' && s !== 'todas' && s !== 'todos');
+        };
+
+        const municipiosFilter = parseListParam(id_municipio);
+        const periodosFilter = parseListParam(id_periodo);
+        const variablesFilter = agruparVariables ? [] : parseListParam(id_variable);
+
+        // 4. Heatmap Map Data
         let mapSql = `
             SELECT 
                 m.id_municipio, 
                 m.codigo_municipio,
                 m.nombre as nombre_municipio, 
-                COALESCE(SUM(v.valor), 0) as total
+                COALESCE(SUM(CAST(v.valor AS DECIMAL(15,4))), 0) as total
             FROM indicador_registros r
             JOIN municipios m ON r.id_municipio = m.id_municipio
             JOIN indicador_valores v ON r.id_registro = v.id_registro
@@ -176,37 +225,66 @@ class IndicadoresDAO {
             WHERE r.id_indicador = ? 
             AND var.tipo = 'numero'
         `;
-
         const mapParams = [idIndicador];
 
-        if (id_periodo) {
-            mapSql += ' AND r.id_periodo = ?';
-            mapParams.push(id_periodo);
+        if (periodosFilter.length > 0) {
+            mapSql += ` AND r.id_periodo IN (${periodosFilter.map(() => '?').join(',')})`;
+            mapParams.push(...periodosFilter);
         }
-
-        if (filters.id_municipio) {
-            mapSql += ' AND m.codigo_municipio = ?';
-            mapParams.push(filters.id_municipio);
+        if (municipiosFilter.length > 0) {
+            mapSql += ` AND (m.codigo_municipio IN (${municipiosFilter.map(() => '?').join(',')}) OR m.id_municipio IN (${municipiosFilter.map(() => '?').join(',')}))`;
+            mapParams.push(...municipiosFilter, ...municipiosFilter);
         }
-
-        if (filters.id_variable) {
-            mapSql += ' AND v.id_variable = ?';
-            mapParams.push(filters.id_variable);
+        if (variablesFilter.length > 0) {
+            mapSql += ` AND v.id_variable IN (${variablesFilter.map(() => '?').join(',')})`;
+            mapParams.push(...variablesFilter);
+        }
+        if (dimension_valor && dimension_valor !== 'all') {
+            mapSql += ` AND EXISTS (
+                SELECT 1 FROM indicador_valores v_dim 
+                JOIN indicador_variables iv_dim ON v_dim.id_variable = iv_dim.id_variable 
+                WHERE v_dim.id_registro = r.id_registro AND iv_dim.tipo = 'texto' AND v_dim.valor = ?
+            )`;
+            mapParams.push(dimension_valor);
         }
 
         mapSql += ' GROUP BY m.id_municipio, m.codigo_municipio, m.nombre';
         const [mapRows] = await pool.query(mapSql, mapParams);
 
+        // Helper to format period label
+        const formatPeriodLabel = (row, modo) => {
+            if (modo === 'todos') return 'Total Consolidado';
+            if (modo === 'anio') return String(row.anio);
+
+            const anio = row.anio;
+            const num = row.numero;
+            const tipo = row.tipo_periodo || row.tipo;
+
+            if (tipo === 'semestral') {
+                const sem = num === 1 ? 'A' : (num === 2 ? 'B' : String(num));
+                return `${anio}${sem}`;
+            }
+            if (tipo === 'trimestral') {
+                return `${anio}-T${num || 1}`;
+            }
+            if (tipo === 'mensual') {
+                const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                return `${anio} - ${meses[(num || 1) - 1] || 'M' + num}`;
+            }
+            if (tipo === 'salud') {
+                return `${anio} - S${String(num || 1).padStart(2, '0')}`;
+            }
+            return String(anio);
+        };
+
+        // If Detailed Microdata Mode
         if (fuente_datos === 'detallada') {
-            // Get all variables
-            const [variables] = await pool.query('SELECT * FROM indicador_variables WHERE id_indicador = ? ORDER BY orden ASC', [idIndicador]);
-            
-            // Get raw flat data for interactive pivot
             let rawSql = `
                 SELECT 
                     r.id_registro,
                     m.nombre as municipio,
-                    p.anio, p.numero, p.tipo as tipo_periodo,
+                    m.codigo_municipio,
+                    p.id_periodo, p.anio, p.numero, p.tipo as tipo_periodo,
                     v.id_variable,
                     v.valor
                 FROM indicador_registros r
@@ -216,33 +294,36 @@ class IndicadoresDAO {
                 WHERE r.id_indicador = ?
             `;
             const rawParams = [idIndicador];
-            if (id_periodo) {
-                rawSql += ' AND r.id_periodo = ?';
-                rawParams.push(id_periodo);
+            if (periodosFilter.length > 0) {
+                rawSql += ` AND r.id_periodo IN (${periodosFilter.map(() => '?').join(',')})`;
+                rawParams.push(...periodosFilter);
             }
-            if (filters.id_municipio) {
-                rawSql += ' AND m.codigo_municipio = ?';
-                rawParams.push(filters.id_municipio);
+            if (municipiosFilter.length > 0) {
+                rawSql += ` AND (m.codigo_municipio IN (${municipiosFilter.map(() => '?').join(',')}) OR m.id_municipio IN (${municipiosFilter.map(() => '?').join(',')}))`;
+                rawParams.push(...municipiosFilter, ...municipiosFilter);
+            }
+            if (dimension_valor && dimension_valor !== 'all') {
+                rawSql += ` AND EXISTS (
+                    SELECT 1 FROM indicador_valores v_dim 
+                    JOIN indicador_variables iv_dim ON v_dim.id_variable = iv_dim.id_variable 
+                    WHERE v_dim.id_registro = r.id_registro AND iv_dim.tipo = 'texto' AND v_dim.valor = ?
+                )`;
+                rawParams.push(dimension_valor);
             }
 
             const [rawRows] = await pool.query(rawSql, rawParams);
-            
+
             const flatDataMap = new Map();
             for (const row of rawRows) {
                 if (!flatDataMap.has(row.id_registro)) {
-                    let per = row.anio.toString();
-                    if (row.tipo_periodo === 'mensual') per = `${row.anio}-${String(row.numero).padStart(2, '0')}`;
-                    else if (row.tipo_periodo === 'semestral') per = `${row.anio}-S${row.numero}`;
-                    else if (row.tipo_periodo === 'trimestral') per = `${row.anio}-T${row.numero}`;
-                    else if (row.tipo_periodo === 'salud') per = `${row.anio} - Salud ${String(row.numero).padStart(2, '0')}`;
-
+                    let per = formatPeriodLabel(row, modoPeriodo);
                     flatDataMap.set(row.id_registro, {
                         id_registro: row.id_registro,
                         municipio: row.municipio,
                         periodo: per
                     });
                 }
-                const varDef = variables.find(v => v.id_variable === row.id_variable);
+                const varDef = allVariables.find(v => v.id_variable === row.id_variable);
                 if (varDef) {
                     let val = row.valor;
                     if (varDef.tipo === 'numero') val = parseFloat(val) || 0;
@@ -253,97 +334,313 @@ class IndicadoresDAO {
             return {
                 fuente_datos: 'detallada',
                 mapData: mapRows,
-                variables: variables,
+                variables: allVariables,
+                dimensionOptions,
                 flatData: Array.from(flatDataMap.values())
             };
         }
 
-        // Mode agrupada
-        const [dimensions] = await pool.query(
-            'SELECT * FROM indicador_variables WHERE id_indicador = ? AND es_dimension = 1 AND tipo = "texto" ORDER BY orden ASC',
-            [idIndicador]
-        );
+        // Standard Agrupada Mode
+        // Fetch all distinct periods available for this indicator
+        const [availablePeriodos] = await pool.query(`
+            SELECT DISTINCT p.id_periodo, p.anio, p.numero, p.tipo
+            FROM periodos p
+            JOIN indicador_registros r ON p.id_periodo = r.id_periodo
+            WHERE r.id_indicador = ?
+            ORDER BY p.anio ASC, p.numero ASC
+        `, [idIndicador]);
 
-        const charts = [];
-        for (const dim of dimensions) {
-            let chartSql = `
-                SELECT 
-                    CONCAT(m.nombre, ' - ', v_dim.valor, ' - ', p.anio) as name,
-                    SUM(v_num.valor) as value,
-                    var_num.unidad as unit
-                FROM indicador_registros r
-                JOIN municipios m ON r.id_municipio = m.id_municipio
-                JOIN periodos p ON r.id_periodo = p.id_periodo
-                JOIN indicador_valores v_dim ON r.id_registro = v_dim.id_registro
-                JOIN indicador_valores v_num ON r.id_registro = v_num.id_registro
-                JOIN indicador_variables var_num ON v_num.id_variable = var_num.id_variable
-                WHERE r.id_indicador = ?
-                AND v_dim.id_variable = ?
-                AND var_num.tipo = 'numero'
-            `;
+        // Build main aggregation query
+        let selectFields = '';
+        let groupByFields = '';
+        let orderByFields = '';
 
-            const chartParams = [idIndicador, dim.id_variable];
-
-            if (id_periodo) {
-                chartSql += ' AND r.id_periodo = ?';
-                chartParams.push(id_periodo);
+        if (agruparMunicipios) {
+            if (modoPeriodo === 'todos') {
+                selectFields = `
+                    'Total' as anio,
+                    'todos' as id_periodo,
+                    v.id_variable,
+                    var.nombre as variable_nombre,
+                    var.unidad as variable_unidad,
+                    var.orden,
+                    SUM(CAST(v.valor AS DECIMAL(15,4))) as valor_total
+                `;
+                groupByFields = 'v.id_variable, var.nombre, var.unidad, var.orden';
+                orderByFields = 'var.orden ASC';
+            } else if (modoPeriodo === 'anio') {
+                selectFields = `
+                    p.anio,
+                    v.id_variable,
+                    var.nombre as variable_nombre,
+                    var.unidad as variable_unidad,
+                    var.orden,
+                    SUM(CAST(v.valor AS DECIMAL(15,4))) as valor_total
+                `;
+                groupByFields = 'p.anio, v.id_variable, var.nombre, var.unidad, var.orden';
+                orderByFields = 'p.anio ASC, var.orden ASC';
+            } else {
+                // Modo ninguno (detallado)
+                selectFields = `
+                    p.id_periodo,
+                    p.anio,
+                    p.numero,
+                    p.tipo as tipo_periodo,
+                    v.id_variable,
+                    var.nombre as variable_nombre,
+                    var.unidad as variable_unidad,
+                    var.orden,
+                    SUM(CAST(v.valor AS DECIMAL(15,4))) as valor_total
+                `;
+                groupByFields = 'p.id_periodo, p.anio, p.numero, p.tipo, v.id_variable, var.nombre, var.unidad, var.orden';
+                orderByFields = 'p.anio ASC, p.numero ASC, var.orden ASC';
             }
-
-            if (filters.id_municipio) {
-                chartSql += ' AND m.codigo_municipio = ?';
-                chartParams.push(filters.id_municipio);
+        } else {
+            // Desglosado por municipio
+            if (modoPeriodo === 'todos') {
+                selectFields = `
+                    m.id_municipio,
+                    m.nombre as municipio_nombre,
+                    m.codigo_municipio,
+                    'Total' as anio,
+                    'todos' as id_periodo,
+                    v.id_variable,
+                    var.nombre as variable_nombre,
+                    var.unidad as variable_unidad,
+                    var.orden,
+                    SUM(CAST(v.valor AS DECIMAL(15,4))) as valor_total
+                `;
+                groupByFields = 'm.id_municipio, m.nombre, m.codigo_municipio, v.id_variable, var.nombre, var.unidad, var.orden';
+                orderByFields = 'm.nombre ASC, var.orden ASC';
+            } else if (modoPeriodo === 'anio') {
+                selectFields = `
+                    m.id_municipio,
+                    m.nombre as municipio_nombre,
+                    m.codigo_municipio,
+                    p.anio,
+                    v.id_variable,
+                    var.nombre as variable_nombre,
+                    var.unidad as variable_unidad,
+                    var.orden,
+                    SUM(CAST(v.valor AS DECIMAL(15,4))) as valor_total
+                `;
+                groupByFields = 'm.id_municipio, m.nombre, m.codigo_municipio, p.anio, v.id_variable, var.nombre, var.unidad, var.orden';
+                orderByFields = 'm.nombre ASC, p.anio ASC, var.orden ASC';
+            } else {
+                selectFields = `
+                    m.id_municipio,
+                    m.nombre as municipio_nombre,
+                    m.codigo_municipio,
+                    p.id_periodo,
+                    p.anio,
+                    p.numero,
+                    p.tipo as tipo_periodo,
+                    v.id_variable,
+                    var.nombre as variable_nombre,
+                    var.unidad as variable_unidad,
+                    var.orden,
+                    SUM(CAST(v.valor AS DECIMAL(15,4))) as valor_total
+                `;
+                groupByFields = 'm.id_municipio, m.nombre, m.codigo_municipio, p.id_periodo, p.anio, p.numero, p.tipo, v.id_variable, var.nombre, var.unidad, var.orden';
+                orderByFields = 'm.nombre ASC, p.anio ASC, p.numero ASC, var.orden ASC';
             }
-
-            if (filters.id_variable) {
-                chartSql += ' AND v_num.id_variable = ?';
-                chartParams.push(filters.id_variable);
-            }
-
-            chartSql += ' GROUP BY m.nombre, v_dim.valor, p.anio, var_num.unidad ORDER BY p.anio DESC, m.nombre ASC';
-
-            const [chartRows] = await pool.query(chartSql, chartParams);
-
-            charts.push({
-                dimensionId: dim.id_variable,
-                dimensionName: dim.nombre,
-                data: chartRows
-            });
         }
 
-        if (charts.length === 0) {
-            // Default chart for aggregated if no text variables
-            let defSql = `
-                SELECT 
-                    m.nombre as name,
-                    SUM(v.valor) as value,
-                    var.unidad as unit
-                FROM indicador_registros r
-                JOIN municipios m ON r.id_municipio = m.id_municipio
-                JOIN indicador_valores v ON r.id_registro = v.id_registro
-                JOIN indicador_variables var ON v.id_variable = var.id_variable
-                WHERE r.id_indicador = ? AND var.tipo = 'numero'
-            `;
-            const defParams = [idIndicador];
-            if (id_periodo) { defSql += ' AND r.id_periodo = ?'; defParams.push(id_periodo); }
-            if (filters.id_municipio) { defSql += ' AND m.codigo_municipio = ?'; defParams.push(filters.id_municipio); }
-            if (filters.id_variable) { defSql += ' AND var.id_variable = ?'; defParams.push(filters.id_variable); }
+        let mainSql = `
+            SELECT ${selectFields}
+            FROM indicador_registros r
+            JOIN periodos p ON r.id_periodo = p.id_periodo
+            JOIN indicador_valores v ON r.id_registro = v.id_registro
+            JOIN indicador_variables var ON v.id_variable = var.id_variable
+            JOIN municipios m ON r.id_municipio = m.id_municipio
+            WHERE r.id_indicador = ?
+        `;
+        const mainParams = [idIndicador];
 
-            defSql += ' GROUP BY m.nombre, var.unidad ORDER BY m.nombre ASC';
-            const [defRows] = await pool.query(defSql, defParams);
+        if (variablesFilter.length > 0) {
+            mainSql += ` AND v.id_variable IN (${variablesFilter.map(() => '?').join(',')})`;
+            mainParams.push(...variablesFilter);
+        } else {
+            mainSql += " AND var.tipo = 'numero'";
+        }
 
-            if (defRows.length > 0) {
-                charts.push({
-                    dimensionId: 'default',
-                    dimensionName: 'Totales por Municipio',
-                    data: defRows
+        if (periodosFilter.length > 0) {
+            mainSql += ` AND r.id_periodo IN (${periodosFilter.map(() => '?').join(',')})`;
+            mainParams.push(...periodosFilter);
+        }
+
+        if (municipiosFilter.length > 0) {
+            mainSql += ` AND (m.codigo_municipio IN (${municipiosFilter.map(() => '?').join(',')}) OR m.id_municipio IN (${municipiosFilter.map(() => '?').join(',')}))`;
+            mainParams.push(...municipiosFilter, ...municipiosFilter);
+        }
+
+        if (dimension_valor && dimension_valor !== 'all') {
+            mainSql += ` AND EXISTS (
+                SELECT 1 FROM indicador_valores v_dim 
+                JOIN indicador_variables iv_dim ON v_dim.id_variable = iv_dim.id_variable 
+                WHERE v_dim.id_registro = r.id_registro AND iv_dim.tipo = 'texto' AND v_dim.valor = ?
+            )`;
+            mainParams.push(dimension_valor);
+        }
+
+        mainSql += ` GROUP BY ${groupByFields} ORDER BY ${orderByFields}`;
+
+        const [aggRows] = await pool.query(mainSql, mainParams);
+
+        // Transform results into multi-series chart and Excel table format
+        const seriesMap = new Map();
+        const tableRowsMap = new Map();
+        const periodLabelsOrdered = [];
+        const seenLabels = new Set();
+        const distinctMunicipiosMap = new Map();
+
+        for (const row of aggRows) {
+            const periodLabel = formatPeriodLabel(row, modoPeriodo);
+            if (!seenLabels.has(periodLabel)) {
+                seenLabels.add(periodLabel);
+                periodLabelsOrdered.push(periodLabel);
+            }
+
+            const val = parseFloat(row.valor_total) || 0;
+
+            // When grouped by municipalities
+            if (agruparMunicipios) {
+                if (!seriesMap.has(periodLabel)) {
+                    seriesMap.set(periodLabel, {
+                        name: periodLabel,
+                        anio: row.anio,
+                        numero: row.numero,
+                        id_periodo: row.id_periodo,
+                        Total_General: 0
+                    });
+                }
+                const sObj = seriesMap.get(periodLabel);
+                sObj[row.variable_nombre] = val;
+                sObj.Total_General = (sObj.Total_General || 0) + val;
+
+                // Excel-style table rows
+                if (!tableRowsMap.has(row.id_variable)) {
+                    tableRowsMap.set(row.id_variable, {
+                        id_variable: row.id_variable,
+                        nombre: row.variable_nombre,
+                        unidad: row.variable_unidad || '',
+                        displayName: `Suma de ${row.variable_nombre}${row.variable_unidad ? ` (${row.variable_unidad})` : ''}`,
+                        values: {},
+                        total: 0
+                    });
+                }
+                const tRow = tableRowsMap.get(row.id_variable);
+                tRow.values[periodLabel] = val;
+                tRow.total += val;
+            } else {
+                // When NOT grouped by municipalities
+                const munKey = row.municipio_nombre || 'Desconocido';
+                if (!distinctMunicipiosMap.has(munKey)) {
+                    distinctMunicipiosMap.set(munKey, {
+                        id_municipio: row.id_municipio,
+                        codigo_municipio: row.codigo_municipio,
+                        nombre: munKey,
+                        series: new Map(),
+                        tableRows: new Map()
+                    });
+                }
+                const mData = distinctMunicipiosMap.get(munKey);
+                if (!mData.series.has(periodLabel)) {
+                    mData.series.set(periodLabel, {
+                        name: periodLabel,
+                        municipio: munKey,
+                        anio: row.anio,
+                        Total_General: 0
+                    });
+                }
+                const msObj = mData.series.get(periodLabel);
+                msObj[row.variable_nombre] = val;
+                msObj.Total_General = (msObj.Total_General || 0) + val;
+
+                if (!mData.tableRows.has(row.id_variable)) {
+                    mData.tableRows.set(row.id_variable, {
+                        id_variable: row.id_variable,
+                        nombre: row.variable_nombre,
+                        unidad: row.variable_unidad || '',
+                        displayName: `Suma de ${row.variable_nombre}${row.variable_unidad ? ` (${row.variable_unidad})` : ''}`,
+                        values: {},
+                        total: 0
+                    });
+                }
+                const mtRow = mData.tableRows.get(row.id_variable);
+                mtRow.values[periodLabel] = val;
+                mtRow.total += val;
+            }
+        }
+
+        // Prepare table data and chart series
+        let finalSeries = [];
+        let finalTable = { columns: periodLabelsOrdered, rows: [] };
+        let municipiosBreakdown = null;
+
+        if (agruparMunicipios) {
+            finalSeries = Array.from(seriesMap.values());
+            finalTable.rows = Array.from(tableRowsMap.values());
+        } else {
+            // Build disaggregated list per municipality
+            municipiosBreakdown = Array.from(distinctMunicipiosMap.values()).map(m => ({
+                id_municipio: m.id_municipio,
+                codigo_municipio: m.codigo_municipio,
+                nombre: m.nombre,
+                series: Array.from(m.series.values()),
+                table: {
+                    columns: periodLabelsOrdered,
+                    rows: Array.from(m.tableRows.values())
+                }
+            }));
+
+            // For the main series, combine them with municipality label
+            finalSeries = municipiosBreakdown.flatMap(m => m.series);
+            // Default table uses first municipality or overall
+            if (municipiosBreakdown.length > 0) {
+                finalTable = municipiosBreakdown[0].table;
+            }
+        }
+
+        // Legacy charts compatibility for LandingPage:
+        const legacyCharts = [];
+        if (finalTable.rows.length > 0) {
+            for (const r of finalTable.rows) {
+                legacyCharts.push({
+                    dimensionId: String(r.id_variable),
+                    dimensionName: r.displayName,
+                    data: periodLabelsOrdered.map(col => ({
+                        name: col,
+                        value: r.values[col] || 0,
+                        unit: r.unidad
+                    }))
                 });
             }
+        } else if (mapRows.length > 0) {
+            legacyCharts.push({
+                dimensionId: 'totales',
+                dimensionName: 'Totales por Municipio',
+                data: mapRows.map(m => ({
+                    name: m.nombre_municipio,
+                    value: m.total
+                }))
+            });
         }
 
         return {
             fuente_datos: 'agrupada',
+            agrupado_municipios: agruparMunicipios,
+            modo_periodos: modoPeriodo,
+            agrupado_variables: agruparVariables,
+            variables: numVars,
+            dimensiones: textDims,
+            dimensionOptions,
+            periodos: availablePeriodos,
+            series: finalSeries,
+            table: finalTable,
+            municipiosBreakdown,
             mapData: mapRows,
-            charts: charts
+            charts: legacyCharts
         };
     }
 }

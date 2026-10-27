@@ -504,16 +504,31 @@ class IndicadoresController {
     static async obtenerDatosDashboard(req, res) {
         try {
             const { id } = req.params; // id_indicador
-            const { id_periodo, active, id_municipio, id_variable } = req.query; // Filters
+            const { 
+                id_periodo, 
+                active, 
+                id_municipio, 
+                id_variable, 
+                dimension_valor, 
+                agrupar_municipios, 
+                agrupar_periodos, 
+                agrupar_variables 
+            } = req.query; // Filters
 
             // 1. Validate Indicator
             const indicador = await IndicadoresModel.getIndicadorById(id);
             if (!indicador) return res.status(404).json({ message: 'Indicador no encontrado' });
 
-            // 2. Register filters
-            // We need a DAO method that supports aggregation.
-            // For now, let's implement the logic here calling Model/DAO methods we'll creating.
-            const dashboardData = await IndicadoresModel.getDashboardData(id, { id_periodo, active, id_municipio, id_variable });
+            const dashboardData = await IndicadoresModel.getDashboardData(id, { 
+                id_periodo, 
+                active, 
+                id_municipio, 
+                id_variable,
+                dimension_valor,
+                agrupar_municipios,
+                agrupar_periodos,
+                agrupar_variables
+            });
 
             res.json(dashboardData);
 
